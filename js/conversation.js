@@ -61,6 +61,7 @@ A JSON array of any verb-pattern mistakes found in the student's LAST message (e
         body: JSON.stringify({
           model: MODEL,
           max_tokens: maxTokens,
+          thinking: { type: 'disabled' },
           system: SYSTEM_PROMPT,
           messages,
         }),

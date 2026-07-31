@@ -19,6 +19,7 @@ const AIContent = (() => {
         body: JSON.stringify({
           model: MODEL,
           max_tokens: maxTokens,
+          thinking: { type: 'disabled' },
           system: systemPrompt,
           messages: [{ role: 'user', content: userPrompt }],
         }),
