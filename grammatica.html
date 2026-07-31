@@ -71,7 +71,29 @@
     font-family: var(--font-body);
   }
 
-  .topic-card:active { transform: scale(0.98); }
+  .topic-card:active { transform: scale(0.97); }
+  .topic-card {
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: gr-drop 0.4s ease forwards;
+    transition: transform 0.15s ease;
+  }
+  .gr-topics .topic-card:nth-child(1) { animation-delay: 0.05s; }
+  .gr-topics .topic-card:nth-child(2) { animation-delay: 0.12s; }
+  .gr-topics .topic-card:nth-child(3) { animation-delay: 0.19s; }
+  .gr-topics .topic-card:nth-child(4) { animation-delay: 0.26s; }
+
+  @keyframes gr-drop {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .gr-fade-in {
+    animation: gr-fade 0.35s ease forwards;
+  }
+  @keyframes gr-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 
   .topic-icon { font-size: 1.4rem; flex-shrink: 0; }
   .topic-title { font-family: var(--font-heading); font-size: 0.95rem; }
@@ -101,6 +123,28 @@
     text-align: center;
     color: var(--text-dim);
     padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .gr-loading-dots {
+    display: flex;
+    gap: 5px;
+  }
+  .gr-loading-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    animation: gr-bounce 1.2s ease-in-out infinite;
+  }
+  .gr-loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .gr-loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes gr-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-6px); opacity: 1; }
   }
 
   .gr-error {
@@ -269,7 +313,12 @@ Regole:
   async function loadTopic(topic) {
     topicsEl.style.display = 'none';
     customInput.parentElement.style.display = 'none';
-    setState('<div class="gr-state">✨ Zoe sta preparando la lezione...</div>');
+    setState(`
+      <div class="gr-state">
+        <span>✨ Zoe sta preparando la lezione...</span>
+        <div class="gr-loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    `);
 
     try {
       const lesson = await AIContent.askJSON(
@@ -281,7 +330,7 @@ Regole:
       SpeakEasyStorage.saveGrammaticaLezione({ topic, title: lesson.title || topic });
     } catch (err) {
       setState(`
-        <div class="gr-error">
+        <div class="gr-error gr-fade-in">
           😕 ${escapeHtml(err.message)}
           <div class="gr-actions"><button class="btn-secondary" id="retry-btn" style="margin-top:0.8rem">Riprova</button></div>
         </div>
@@ -320,7 +369,7 @@ Regole:
     const tip = lesson.tip ? `<div class="gr-tip">💡 ${escapeHtml(lesson.tip)}</div>` : '';
 
     setState(`
-      <div class="gr-lesson">
+      <div class="gr-lesson gr-fade-in">
         <div>
           <div class="gr-lesson-title">${escapeHtml(lesson.title || topic)}</div>
           <p class="gr-lesson-intro">${escapeHtml(lesson.intro || '')}</p>

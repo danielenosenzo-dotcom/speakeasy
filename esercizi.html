@@ -70,10 +70,30 @@
     color: var(--text);
     font-family: var(--font-body);
   }
-  .topic-card:active { transform: scale(0.98); }
+  .topic-card:active { transform: scale(0.97); }
   .topic-icon { font-size: 1.4rem; flex-shrink: 0; }
   .topic-title { font-family: var(--font-heading); font-size: 0.95rem; }
   .topic-desc { font-size: 0.76rem; color: var(--text-dim); margin-top: 0.1rem; }
+
+  .topic-card {
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: ex-drop 0.4s ease forwards;
+    transition: transform 0.15s ease;
+  }
+  .ex-topics .topic-card:nth-child(1) { animation-delay: 0.05s; }
+  .ex-topics .topic-card:nth-child(2) { animation-delay: 0.12s; }
+  .ex-topics .topic-card:nth-child(3) { animation-delay: 0.19s; }
+  .ex-topics .topic-card:nth-child(4) { animation-delay: 0.26s; }
+  @keyframes ex-drop {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .ex-fade-in { animation: ex-fade 0.35s ease forwards; }
+  @keyframes ex-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 
   .ex-state {
     width: 100%;
@@ -81,6 +101,25 @@
     text-align: center;
     color: var(--text-dim);
     padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .ex-loading-dots { display: flex; gap: 5px; }
+  .ex-loading-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-purple);
+    animation: ex-bounce 1.2s ease-in-out infinite;
+  }
+  .ex-loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .ex-loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes ex-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-6px); opacity: 1; }
   }
 
   .ex-error {
@@ -271,7 +310,12 @@ Regole:
   async function loadExercises(topic) {
     currentTopic = topic;
     topicsEl.style.display = 'none';
-    contentEl.innerHTML = '<div class="ex-state">✏️ Zoe sta preparando gli esercizi...</div>';
+    contentEl.innerHTML = `
+      <div class="ex-state">
+        <span>✏️ Zoe sta preparando gli esercizi...</span>
+        <div class="ex-loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    `;
 
     try {
       const data = await AIContent.askJSON(`Argomento richiesto: ${topic}`, SYSTEM_PROMPT, 3000);
@@ -282,7 +326,7 @@ Regole:
       renderQuestion();
     } catch (err) {
       contentEl.innerHTML = `
-        <div class="ex-error">
+        <div class="ex-error ex-fade-in">
           😕 ${escapeHtml(err.message)}
           <div class="ex-actions"><button class="btn-secondary" id="retry-btn" style="margin-top:0.8rem">Riprova</button></div>
         </div>
@@ -308,7 +352,7 @@ Regole:
     }
 
     contentEl.innerHTML = `
-      <div class="ex-quiz">
+      <div class="ex-quiz ex-fade-in">
         <div class="ex-progress">
           <span>${currentIndex + 1}/${quiz.length}</span>
           <div class="ex-progress-track"><div class="ex-progress-fill" style="width:${pct}%"></div></div>
@@ -374,7 +418,7 @@ Regole:
       : 'Vale la pena rivedere le regole grammaticali su questo tema 📖';
 
     contentEl.innerHTML = `
-      <div class="ex-final">
+      <div class="ex-final ex-fade-in">
         <div class="ex-final-score">${score}/${quiz.length}</div>
         <p style="color:var(--text-dim);font-size:0.9rem;">${msg}</p>
         <div class="ex-actions" style="margin-top:1.2rem;">
