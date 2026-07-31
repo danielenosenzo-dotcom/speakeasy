@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SpeakEasy — Conversazione Guidata</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f0a1e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<link rel="stylesheet" href="css/call.css">
+<style>
+  html, body { overflow-y: auto; height: auto; }
+
+  .gd-screen {
+    min-height: 100vh;
+    height: auto;
+    justify-content: flex-start;
+    gap: 1.2rem;
+    padding: 1.5rem 1.4rem 3rem;
+  }
+
+  .gd-topbar {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .back-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 1.3rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gd-title { font-family: var(--font-heading); font-size: 1.2rem; }
+
+  .gd-scenarios {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .scenario-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface);
+    border: none;
+    border-left: 4px solid var(--accent-blue);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem;
+    min-height: 60px;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--font-body);
+  }
+  .scenario-card:active { transform: scale(0.98); }
+  .scenario-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .scenario-title { font-family: var(--font-heading); font-size: 0.95rem; }
+  .scenario-desc { font-size: 0.76rem; color: var(--text-dim); margin-top: 0.1rem; }
+
+  /* Prepare screen */
+  .gd-prepare {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .gd-prepare-title {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    text-align: center;
+  }
+  .phrase-panel {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.2rem;
+  }
+  .phrase-panel h3 {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    color: var(--accent-blue);
+    margin-bottom: 0.7rem;
+  }
+  .phrase-item { margin-bottom: 0.6rem; font-size: 0.86rem; }
+  .phrase-item:last-child { margin-bottom: 0; }
+  .phrase-item .en { color: var(--text); }
+  .phrase-item .it { color: var(--text-dim); font-size: 0.78rem; }
+
+  /* Call screen (reused layout) */
+  .gd-call-screen { display: none; }
+  .gd-call-screen.active { display: flex; }
+
+  .phrase-toggle-btn {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    background: var(--surface-2);
+    border: 2px solid var(--accent-blue);
+    color: var(--text);
+    border-radius: var(--radius-full);
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    z-index: 15;
+  }
+
+  .phrase-drawer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 1.2rem 1.4rem 2rem;
+    max-height: 50vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    z-index: 25;
+  }
+  .phrase-drawer.open { transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="screen gd-screen" id="scenario-screen">
+  <div class="gd-topbar">
+    <a href="index.html" class="back-link">←</a>
+    <span class="gd-title">🗣️ Conversazione Guidata</span>
+  </div>
+
+  <div class="gd-scenarios" id="gd-scenarios"></div>
+</div>
+
+<div class="screen gd-screen" id="prepare-screen" style="display:none;">
+  <div class="gd-prepare">
+    <p class="gd-prepare-title" id="prepare-title"></p>
+    <div class="phrase-panel">
+      <h3>📋 Frasi utili</h3>
+      <div id="prepare-phrases"></div>
+    </div>
+    <button class="btn-primary" id="prepare-start-btn">▶ Tap to start</button>
+    <p style="text-align:center;color:var(--text-dim);font-size:0.8rem;">Serve un tocco per attivare audio e microfono</p>
+    <button class="btn-secondary" id="prepare-back-btn" style="align-self:center;">← Scegli un altro scenario</button>
+  </div>
+</div>
+
+<div class="offline-banner" id="offline-banner">📡 Connessione assente — riprova quando sei online</div>
+
+<div class="screen call-screen gd-call-screen" id="gd-call-screen">
+  <div class="call-timer-section">
+    <div class="call-timer" id="call-timer">5:00</div>
+    <div class="call-progress-track">
+      <div class="call-progress-fill" id="call-progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="call-avatar-section">
+    <div id="zoe-avatar-root" class="zoe-avatar-lg"></div>
+    <div class="call-status-row">
+      <div class="sound-wave" id="sound-wave"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="mic-indicator status-hidden" id="mic-indicator">🎤</div>
+      <div class="thinking-indicator status-hidden" id="thinking-indicator"><span>Zoe is thinking</span></div>
+    </div>
+    <div class="call-status-label" id="call-status-label">Connecting...</div>
+  </div>
+
+  <button class="btn-danger" id="end-call-btn">🔴 End Call</button>
+</div>
+
+<button class="phrase-toggle-btn" id="phrase-toggle-btn" style="display:none;">📋 Frasi</button>
+<div class="phrase-drawer" id="phrase-drawer">
+  <h3 style="font-family:var(--font-heading);color:var(--accent-blue);margin-bottom:0.8rem;">📋 Frasi utili</h3>
+  <div id="drawer-phrases"></div>
+</div>
+
+<script>
+  const SCENARIOS = [
+    { id: 'restaurant', emoji: '🍝', title: 'Al ristorante', desc: 'Ordina da mangiare e chiedi il conto', label: 'You are at a restaurant. Zoe plays the waiter/waitress (or a friend eating with you) and helps you order food and ask for the bill.', phrases: [
+      { en: 'Could I see the menu, please?', it: 'Posso vedere il menù, per favore?' },
+      { en: "I'd like to order the pasta.", it: 'Vorrei ordinare la pasta.' },
+      { en: 'What do you recommend?', it: 'Cosa consigli?' },
+      { en: "I'm allergic to nuts.", it: 'Sono allergico/a alla frutta secca.' },
+      { en: 'Could we have the bill, please?', it: 'Possiamo avere il conto, per favore?' },
+      { en: 'This is delicious!', it: 'È delizioso!' },
+    ]},
+    { id: 'airport', emoji: '✈️', title: 'In aeroporto', desc: 'Check-in, controlli e imbarco', label: 'You are at the airport. Zoe plays an airport staff member helping you with check-in, security, or boarding.', phrases: [
+      { en: "Where's the check-in desk?", it: "Dov'è il banco check-in?" },
+      { en: 'Here is my passport and boarding pass.', it: "Ecco il mio passaporto e la carta d'imbarco." },
+      { en: 'Which gate does the flight leave from?', it: 'Da quale gate parte il volo?' },
+      { en: 'Is the flight on time?', it: 'Il volo è in orario?' },
+      { en: "I'd like a window seat.", it: 'Vorrei un posto vicino al finestrino.' },
+    ]},
+    { id: 'doctor', emoji: '🏥', title: 'Dal dottore', desc: 'Spiega i sintomi e capisci la visita', label: 'You are at the doctor. Zoe plays the doctor asking about your symptoms and giving simple advice.', phrases: [
+      { en: "I don't feel well.", it: 'Non mi sento bene.' },
+      { en: 'I have a headache / a sore throat.', it: 'Ho mal di testa / mal di gola.' },
+      { en: 'How long have you had these symptoms?', it: 'Da quanto tempo hai questi sintomi?' },
+      { en: 'You should rest and drink plenty of water.', it: 'Dovresti riposare e bere molta acqua.' },
+      { en: 'Do I need to take any medicine?', it: 'Devo prendere qualche medicina?' },
+    ]},
+    { id: 'friend', emoji: '👋', title: 'Fare amicizia', desc: 'Presentati e chiacchiera con un coetaneo', label: 'You are meeting a new person your age for the first time. Zoe plays a friendly peer getting to know you.', phrases: [
+      { en: "Hi, I'm... What's your name?", it: 'Ciao, sono... Come ti chiami?' },
+      { en: 'Where are you from?', it: 'Di dove sei?' },
+      { en: 'What do you like doing in your free time?', it: 'Cosa ti piace fare nel tempo libero?' },
+      { en: 'Do you want to hang out sometime?', it: 'Vuoi vederci qualche volta?' },
+      { en: 'That sounds fun!', it: 'Sembra divertente!' },
+    ]},
+  ];
+
+  let currentScenario = null;
+
+  function renderPhrases(container, phrases) {
+    container.innerHTML = phrases.map((p) => `
+      <div class="phrase-item">
+        <div class="en">💬 ${p.en}</div>
+        <div class="it">${p.it}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderScenarioList() {
+    const el = document.getElementById('gd-scenarios');
+    el.innerHTML = SCENARIOS.map((s) => `
+      <button class="scenario-card" data-id="${s.id}">
+        <span class="scenario-icon">${s.emoji}</span>
+        <span><span class="scenario-title">${s.title}</span><br><span class="scenario-desc">${s.desc}</span></span>
+      </button>
+    `).join('');
+    el.querySelectorAll('.scenario-card').forEach((btn) => {
+      btn.addEventListener('click', () => openPrepare(btn.dataset.id));
+    });
+  }
+
+  function openPrepare(id) {
+    currentScenario = SCENARIOS.find((s) => s.id === id);
+    document.getElementById('scenario-screen').style.display = 'none';
+    document.getElementById('prepare-screen').style.display = 'flex';
+    document.getElementById('prepare-title').textContent = currentScenario.emoji + ' ' + currentScenario.title;
+    renderPhrases(document.getElementById('prepare-phrases'), currentScenario.phrases);
+    renderPhrases(document.getElementById('drawer-phrases'), currentScenario.phrases);
+  }
+
+  document.getElementById('prepare-back-btn').addEventListener('click', () => {
+    document.getElementById('prepare-screen').style.display = 'none';
+    document.getElementById('scenario-screen').style.display = 'flex';
+  });
+
+  renderScenarioList();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="api-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/zoe-avatar.js"></script>
+<script src="js/session.js"></script>
+<script src="js/elevenlabs.js"></script>
+<script src="js/voice-input.js"></script>
+<script src="js/guided-conversation.js"></script>
+<script>
+  const avatarRoot = ZoeAvatar.mount('#zoe-avatar-root', { mode: 'realistic' });
+  avatarRoot.classList.add('zoe-avatar-lg');
+
+  const soundWave = document.getElementById('sound-wave');
+  const micIndicator = document.getElementById('mic-indicator');
+  const thinkingIndicator = document.getElementById('thinking-indicator');
+  const statusLabel = document.getElementById('call-status-label');
+  const timerEl = document.getElementById('call-timer');
+  const progressFill = document.getElementById('call-progress-fill');
+
+  let sessionActive = false;
+
+  function showStatus(mode) {
+    soundWave.classList.toggle('status-hidden', mode !== 'speaking');
+    micIndicator.classList.toggle('status-hidden', mode !== 'listening');
+    thinkingIndicator.classList.toggle('status-hidden', mode !== 'thinking');
+    const labels = { speaking: 'Zoe is talking...', listening: 'Your turn — speak now!', thinking: 'Zoe is thinking...' };
+    statusLabel.textContent = labels[mode] || '';
+  }
+
+  function zoeSpeak(text) {
+    return new Promise((resolve) => {
+      ZoeAvatar.setState('speaking');
+      showStatus('speaking');
+      ZoeTTS.onEnd(() => {
+        if (!sessionActive) return;
+        ZoeAvatar.setState('idle');
+        resolve();
+      });
+      ZoeTTS.zoeTTS(text).then((ref) => ZoeTTS.playAudio(ref));
+    });
+  }
+
+  function userListen() {
+    return new Promise((resolve) => {
+      ZoeAvatar.setState('listening');
+      showStatus('listening');
+
+      VoiceInput.onSilence((text) => {
+        if (!sessionActive) return;
+        const trimmed = (text || '').trim();
+        if (!trimmed) { VoiceInput.startListening(); return; }
+        resolve(trimmed);
+      });
+
+      VoiceInput.onError((err) => {
+        if (!sessionActive) return;
+        if (err.type === 'permission-denied' || err.type === 'unsupported') {
+          statusLabel.textContent = err.message;
+          endCall('mic-error');
+        }
+      });
+
+      VoiceInput.startListening();
+    });
+  }
+
+  async function conversationLoop(initialLine) {
+    let zoeLine = initialLine;
+    while (sessionActive) {
+      await zoeSpeak(zoeLine);
+      if (!sessionActive) break;
+      ZoeAvatar.setState('thinking');
+      showStatus('thinking');
+      const userText = await userListen();
+      if (!sessionActive) break;
+      ZoeAvatar.setState('thinking');
+      showStatus('thinking');
+      zoeLine = await GuidedConversation.sendMessage(userText);
+    }
+  }
+
+  async function endCall(reason) {
+    if (!sessionActive) return;
+    sessionActive = false;
+    ZoeSession.stop();
+    ZoeTTS.stopAudio();
+    VoiceInput.stopListening();
+
+    ZoeAvatar.setState('thinking');
+    showStatus('thinking');
+    statusLabel.textContent = 'Preparing your feedback...';
+
+    try {
+      const feedback = await GuidedConversation.generateFeedback();
+      sessionStorage.setItem('speakeasy_pending_feedback', JSON.stringify({ source: 'guidata', scenario: currentScenario.title, feedback }));
+    } catch (err) {
+      console.error('SpeakEasy: feedback generation failed', err);
+    }
+
+    window.location.href = 'feedback.html';
+  }
+
+  ZoeSession.onTick((remaining, total) => {
+    timerEl.textContent = ZoeSession.formatTime(remaining);
+    progressFill.style.width = `${(remaining / total) * 100}%`;
+  });
+  ZoeSession.onEnd((reason) => endCall(reason));
+  document.getElementById('end-call-btn').addEventListener('click', () => endCall('manual'));
+
+  const offlineBanner = document.getElementById('offline-banner');
+  window.addEventListener('offline', () => offlineBanner.classList.add('visible'));
+  window.addEventListener('online', () => offlineBanner.classList.remove('visible'));
+  if (!navigator.onLine) offlineBanner.classList.add('visible');
+
+  function unlockAudio() {
+    try { const silent = new Audio(); silent.play().catch(() => {}); } catch {}
+    if ('speechSynthesis' in window) {
+      speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+    }
+  }
+
+  document.getElementById('prepare-start-btn').addEventListener('click', () => {
+    unlockAudio();
+    document.getElementById('prepare-screen').style.display = 'none';
+    document.getElementById('gd-call-screen').classList.add('active');
+    document.getElementById('phrase-toggle-btn').style.display = 'block';
+    sessionActive = true;
+    ZoeSession.start();
+    GuidedConversation.startScenario(currentScenario.label).then((line) => conversationLoop(line));
+  });
+
+  const phraseDrawer = document.getElementById('phrase-drawer');
+  document.getElementById('phrase-toggle-btn').addEventListener('click', () => {
+    phraseDrawer.classList.toggle('open');
+  });
+</script>
+
+</body>
+</html>

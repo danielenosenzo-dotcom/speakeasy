@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>SpeakEasy — Esercizi Pratici</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f0a1e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<style>
+  html, body { overflow-y: auto; height: auto; }
+
+  .ex-screen {
+    min-height: 100vh;
+    height: auto;
+    justify-content: flex-start;
+    gap: 1.2rem;
+    padding: 1.5rem 1.4rem 3rem;
+  }
+
+  .ex-topbar {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .back-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 1.3rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ex-title {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+  }
+
+  .ex-topics {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .topic-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface);
+    border: none;
+    border-left: 4px solid var(--accent-purple);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem;
+    min-height: 60px;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--font-body);
+  }
+  .topic-card:active { transform: scale(0.98); }
+  .topic-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .topic-title { font-family: var(--font-heading); font-size: 0.95rem; }
+  .topic-desc { font-size: 0.76rem; color: var(--text-dim); margin-top: 0.1rem; }
+
+  .ex-state {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    color: var(--text-dim);
+    padding: 2rem 1rem;
+  }
+
+  .ex-error {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border-left: 4px solid #f87171;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .ex-quiz {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ex-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  .ex-progress-track {
+    flex: 1;
+    height: 5px;
+    background: var(--surface);
+    border-radius: var(--radius-full);
+    margin: 0 0.8rem;
+    overflow: hidden;
+  }
+  .ex-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+    transition: width 0.3s ease;
+  }
+
+  .ex-question-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.3rem;
+  }
+
+  .ex-question-text {
+    font-size: 1.02rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .ex-option {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface-2);
+    border: 2px solid transparent;
+    color: var(--text);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.6rem;
+    text-align: left;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+  }
+  .ex-option.correct { border-color: var(--accent-green); background: rgba(74,222,128,0.12); }
+  .ex-option.wrong { border-color: #f87171; background: rgba(248,113,113,0.12); }
+  .ex-option:disabled { opacity: 0.9; }
+
+  .ex-fill-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface-2);
+    border: 2px solid var(--surface-2);
+    color: var(--text);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1rem;
+    font-size: 16px;
+    font-family: var(--font-body);
+    margin-bottom: 0.8rem;
+  }
+  .ex-fill-input.correct { border-color: var(--accent-green); }
+  .ex-fill-input.wrong { border-color: #f87171; }
+
+  .ex-feedback {
+    margin-top: 0.6rem;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.86rem;
+    background: var(--surface-2);
+  }
+  .ex-feedback.ok { color: var(--accent-green); }
+  .ex-feedback.no { color: #f87171; }
+  .ex-feedback .explain { color: var(--text-dim); font-size: 0.82rem; margin-top: 0.3rem; }
+
+  .ex-final {
+    text-align: center;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.4rem;
+  }
+  .ex-final-score {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .ex-actions { display: flex; justify-content: center; gap: 0.6rem; padding-top: 0.4rem; }
+</style>
+</head>
+<body>
+
+<div class="screen ex-screen">
+  <div class="ex-topbar">
+    <a href="index.html" class="back-link">←</a>
+    <span class="ex-title">✏️ Esercizi Pratici</span>
+  </div>
+
+  <div class="ex-topics" id="ex-topics">
+    <button class="topic-card" data-topic="Verbi seguiti da TO + infinito (want to, decide to, hope to, promise to, plan to)">
+      <span class="topic-icon">➡️</span>
+      <span><span class="topic-title">Verbi + TO</span><br><span class="topic-desc">want to, decide to, hope to...</span></span>
+    </button>
+    <button class="topic-card" data-topic="Verbi seguiti da -ING (enjoy, avoid, finish, suggest, mind)">
+      <span class="topic-icon">🔄</span>
+      <span><span class="topic-title">Verbi + -ING</span><br><span class="topic-desc">enjoy doing, avoid doing...</span></span>
+    </button>
+    <button class="topic-card" data-topic="Verbi truffatori che cambiano significato tra -ING e TO + infinito: stop, remember, forget, try">
+      <span class="topic-icon">🎭</span>
+      <span><span class="topic-title">Verbi "truffatori"</span><br><span class="topic-desc">stop, remember, forget, try...</span></span>
+    </button>
+    <button class="topic-card" data-topic="Mix di tutti i verb patterns (TO + infinito, -ING, verbi truffatori)">
+      <span class="topic-icon">🎲</span>
+      <span><span class="topic-title">Mix di tutto</span><br><span class="topic-desc">un po' di tutti gli argomenti</span></span>
+    </button>
+  </div>
+
+  <div id="ex-content"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="api-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/ai-content.js"></script>
+<script>
+  const SYSTEM_PROMPT = `Stai creando esercizi di grammatica inglese per una ragazza italiana di 15 anni che studia i Verb Patterns (liceo scientifico Cambridge).
+
+Genera ESATTAMENTE 5 esercizi sull'argomento richiesto. Rispondi SOLO con un array JSON valido (niente markdown, niente code fence) con questa forma:
+[
+  {
+    "type": "multiple_choice",
+    "question": "...",
+    "options": ["...", "...", "..."],
+    "correctAnswer": "...",
+    "explanation_it": "..."
+  }
+]
+
+Regole:
+- "type" è "multiple_choice" (3-4 "options", "correctAnswer" deve combaciare esattamente il testo di una option) oppure "fill_blank" (la domanda contiene uno spazio da riempire indicato con ___, "correctAnswer" è la parola/frase esatta attesa, minuscola, senza punteggiatura, niente "options")
+- Mix di entrambi i tipi tra i 5 esercizi
+- Varia i verbi usati, non ripetere sempre lo stesso esempio
+- "explanation_it" in italiano, breve, chiara, non condiscendente`;
+
+  const topicsEl = document.getElementById('ex-topics');
+  const contentEl = document.getElementById('ex-content');
+  let quiz = [];
+  let currentIndex = 0;
+  let score = 0;
+  let currentTopic = '';
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  function normalize(str) {
+    return String(str || '').toLowerCase().trim().replace(/[.,!?;:]+$/g, '');
+  }
+
+  async function loadExercises(topic) {
+    currentTopic = topic;
+    topicsEl.style.display = 'none';
+    contentEl.innerHTML = '<div class="ex-state">✏️ Zoe sta preparando gli esercizi...</div>';
+
+    try {
+      const data = await AIContent.askJSON(`Argomento richiesto: ${topic}`, SYSTEM_PROMPT, 1600);
+      quiz = Array.isArray(data) ? data : [];
+      if (quiz.length === 0) throw new Error('Nessun esercizio generato — riprova.');
+      currentIndex = 0;
+      score = 0;
+      renderQuestion();
+    } catch (err) {
+      contentEl.innerHTML = `
+        <div class="ex-error">
+          😕 ${escapeHtml(err.message)}
+          <div class="ex-actions"><button class="btn-secondary" id="retry-btn" style="margin-top:0.8rem">Riprova</button></div>
+        </div>
+      `;
+      document.getElementById('retry-btn').addEventListener('click', () => loadExercises(topic));
+    }
+  }
+
+  function renderQuestion() {
+    const q = quiz[currentIndex];
+    const pct = Math.round((currentIndex / quiz.length) * 100);
+
+    let answerHtml = '';
+    if (q.type === 'multiple_choice') {
+      answerHtml = (q.options || []).map((opt) => `
+        <button class="ex-option" data-value="${escapeHtml(opt)}">${escapeHtml(opt)}</button>
+      `).join('');
+    } else {
+      answerHtml = `
+        <input type="text" class="ex-fill-input" id="fill-input" placeholder="Scrivi la risposta...">
+        <button class="btn-primary" id="fill-submit-btn" style="width:100%">Controlla</button>
+      `;
+    }
+
+    contentEl.innerHTML = `
+      <div class="ex-quiz">
+        <div class="ex-progress">
+          <span>${currentIndex + 1}/${quiz.length}</span>
+          <div class="ex-progress-track"><div class="ex-progress-fill" style="width:${pct}%"></div></div>
+          <span>⭐ ${score}</span>
+        </div>
+        <div class="ex-question-card">
+          <p class="ex-question-text">${escapeHtml(q.question)}</p>
+          <div id="ex-answer-area">${answerHtml}</div>
+          <div id="ex-feedback-area"></div>
+        </div>
+      </div>
+    `;
+
+    if (q.type === 'multiple_choice') {
+      contentEl.querySelectorAll('.ex-option').forEach((btn) => {
+        btn.addEventListener('click', () => checkAnswer(btn.dataset.value, q));
+      });
+    } else {
+      const submit = document.getElementById('fill-submit-btn');
+      const input = document.getElementById('fill-input');
+      submit.addEventListener('click', () => checkAnswer(input.value, q));
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit.click(); });
+    }
+  }
+
+  function checkAnswer(given, q) {
+    const isCorrect = normalize(given) === normalize(q.correctAnswer);
+    if (isCorrect) score++;
+
+    document.querySelectorAll('.ex-option, #fill-submit-btn, #fill-input').forEach((el) => { el.disabled = true; });
+
+    if (q.type === 'multiple_choice') {
+      contentEl.querySelectorAll('.ex-option').forEach((btn) => {
+        if (normalize(btn.dataset.value) === normalize(q.correctAnswer)) btn.classList.add('correct');
+        else if (btn.dataset.value === given) btn.classList.add('wrong');
+      });
+    } else {
+      document.getElementById('fill-input').classList.add(isCorrect ? 'correct' : 'wrong');
+    }
+
+    const feedbackArea = document.getElementById('ex-feedback-area');
+    feedbackArea.innerHTML = `
+      <div class="ex-feedback ${isCorrect ? 'ok' : 'no'}">
+        ${isCorrect ? '✅ Giusto!' : '❌ Risposta corretta: ' + escapeHtml(q.correctAnswer)}
+        <div class="explain">💡 ${escapeHtml(q.explanation_it)}</div>
+      </div>
+      <div class="ex-actions">
+        <button class="btn-primary" id="next-btn">${currentIndex < quiz.length - 1 ? 'Prossima →' : 'Vedi il punteggio'}</button>
+      </div>
+    `;
+    document.getElementById('next-btn').addEventListener('click', () => {
+      currentIndex++;
+      if (currentIndex < quiz.length) renderQuestion();
+      else renderFinal();
+    });
+  }
+
+  function renderFinal() {
+    SpeakEasyStorage.saveEserciziRisultato({ topic: currentTopic, score, total: quiz.length });
+    const pct = Math.round((score / quiz.length) * 100);
+    const msg = pct >= 80 ? 'Fantastico! Padroneggi questo argomento! 🎉'
+      : pct >= 50 ? 'Buon lavoro, ma ripassa ancora un po\' 💪'
+      : 'Vale la pena rivedere le regole grammaticali su questo tema 📖';
+
+    contentEl.innerHTML = `
+      <div class="ex-final">
+        <div class="ex-final-score">${score}/${quiz.length}</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;">${msg}</p>
+        <div class="ex-actions" style="margin-top:1.2rem;">
+          <button class="btn-primary" id="retry-topic-btn">Rifai questo argomento</button>
+        </div>
+        <div class="ex-actions" style="margin-top:0.6rem;">
+          <button class="btn-secondary" id="another-topic-btn">Un altro argomento</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('retry-topic-btn').addEventListener('click', () => loadExercises(currentTopic));
+    document.getElementById('another-topic-btn').addEventListener('click', () => {
+      topicsEl.style.display = 'flex';
+      contentEl.innerHTML = '';
+    });
+  }
+
+  topicsEl.querySelectorAll('.topic-card').forEach((btn) => {
+    btn.addEventListener('click', () => loadExercises(btn.dataset.topic));
+  });
+</script>
+
+</body>
+</html>

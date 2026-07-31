@@ -1,0 +1,90 @@
+:root {
+  --bg: #0f0a1e;
+  --surface: #1a1233;
+  --surface-2: #231a45;
+  --accent-purple: #c084fc;
+  --accent-pink: #f472b6;
+  --accent-blue: #38bdf8;
+  --accent-green: #4ade80;
+  --text: #f0e6ff;
+  --text-dim: #a89cc8;
+
+  --font-body: 'Nunito', sans-serif;
+  --font-heading: 'Baloo 2', cursive;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  padding: 1rem 2.5rem;
+  border-radius: var(--radius-full);
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  padding: 0.9rem 2rem;
+  border-radius: var(--radius-full);
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.screen {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}

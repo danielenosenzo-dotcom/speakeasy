@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpeakEasy — Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<style>
+  html, body { overflow-y: auto; height: auto; }
+  body { padding: 1.5rem; }
+
+  .test-title {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .test-section {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .test-section h2 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .test-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .test-btn {
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-full);
+    min-height: 44px;
+  }
+
+  .test-btn.primary {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+  }
+
+  .test-input {
+    flex: 1;
+    min-width: 160px;
+    background: var(--surface-2);
+    border: 1px solid var(--surface-2);
+    color: var(--text);
+    border-radius: var(--radius-full);
+    padding: 0.6rem 1rem;
+    font-size: 16px;
+    font-family: var(--font-body);
+  }
+
+  .test-output {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 1.5em;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .test-output.ok { color: var(--accent-green); }
+  .test-output.err { color: #f87171; }
+
+  .avatar-test-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .status-pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-full);
+    background: var(--surface-2);
+    color: var(--text-dim);
+    margin-bottom: 0.6rem;
+  }
+</style>
+</head>
+<body>
+
+<a href="index.html" style="color:var(--text-dim);text-decoration:none;font-size:0.85rem;">← Home</a>
+<p class="test-title">🧪 SpeakEasy — Test componenti</p>
+
+<div class="test-section">
+  <h2>1. Avatar</h2>
+  <div class="avatar-test-row">
+    <div id="avatar-root" class="zoe-avatar-lg"></div>
+  </div>
+  <div class="test-row">
+    <button class="test-btn" data-state="idle">Idle</button>
+    <button class="test-btn" data-state="speaking">Speaking</button>
+    <button class="test-btn" data-state="listening">Listening</button>
+    <button class="test-btn" data-state="thinking">Thinking</button>
+    <button class="test-btn" id="toggle-mode-btn">Switch to Geometric</button>
+  </div>
+</div>
+
+<div class="test-section">
+  <h2>2. ElevenLabs (voce)</h2>
+  <div class="status-pill" id="voice-id-pill">Voice ID: —</div>
+  <div class="test-row">
+    <button class="test-btn primary" id="test-connection-btn">Test connessione</button>
+    <button class="test-btn" id="test-play-btn">▶ Riproduci frase di prova</button>
+  </div>
+  <div class="test-output" id="elevenlabs-output">Pronto.</div>
+</div>
+
+<div class="test-section">
+  <h2>3. Microfono (Speech Recognition)</h2>
+  <div class="status-pill" id="mic-support-pill">Supporto: —</div>
+  <div class="test-row">
+    <button class="test-btn primary" id="mic-start-btn">🎤 Avvia ascolto</button>
+    <button class="test-btn" id="mic-stop-btn">Ferma</button>
+  </div>
+  <div class="test-output" id="mic-output">In attesa...</div>
+</div>
+
+<div class="test-section">
+  <h2>4. Claude (conversazione)</h2>
+  <div class="test-row">
+    <button class="test-btn primary" id="claude-start-btn">Avvia conversazione di test</button>
+  </div>
+  <div class="test-row">
+    <input class="test-input" id="claude-input" type="text" placeholder="Scrivi una risposta di prova...">
+    <button class="test-btn" id="claude-send-btn">Invia</button>
+  </div>
+  <div class="test-output" id="claude-output">Pronto.</div>
+</div>
+
+<script src="api-config.js"></script>
+<script src="js/zoe-avatar.js"></script>
+<script src="js/elevenlabs.js"></script>
+<script src="js/voice-input.js"></script>
+<script src="js/conversation.js"></script>
+<script>
+  // --- Avatar test ---
+  let avatarMode = 'realistic';
+  const avatarRoot = document.getElementById('avatar-root');
+  ZoeAvatar.mount(avatarRoot, { mode: avatarMode });
+
+  document.querySelectorAll('.test-btn[data-state]').forEach((btn) => {
+    btn.addEventListener('click', () => ZoeAvatar.setState(btn.dataset.state));
+  });
+
+  document.getElementById('toggle-mode-btn').addEventListener('click', (e) => {
+    avatarMode = avatarMode === 'realistic' ? 'geometric' : 'realistic';
+    ZoeAvatar.mount(avatarRoot, { mode: avatarMode });
+    e.target.textContent = avatarMode === 'realistic' ? 'Switch to Geometric' : 'Switch to Realistic';
+  });
+
+  // --- ElevenLabs test ---
+  const elevenOutput = document.getElementById('elevenlabs-output');
+  document.getElementById('voice-id-pill').textContent =
+    'Voice ID: ' + (API_CONFIG.ELEVENLABS_VOICE_ID && API_CONFIG.ELEVENLABS_VOICE_ID !== '...' ? API_CONFIG.ELEVENLABS_VOICE_ID : 'non configurato');
+
+  document.getElementById('test-connection-btn').addEventListener('click', async () => {
+    elevenOutput.className = 'test-output';
+    elevenOutput.textContent = 'Verifica in corso...';
+    const ok = await ZoeTTS.testConnection();
+    elevenOutput.className = 'test-output ' + (ok ? 'ok' : 'err');
+    elevenOutput.textContent = ok
+      ? '✓ Connessione ElevenLabs riuscita.'
+      : '✗ Connessione fallita — controlla ELEVENLABS_API_KEY e ELEVENLABS_VOICE_ID in api-config.js.';
+  });
+
+  document.getElementById('test-play-btn').addEventListener('click', () => {
+    elevenOutput.className = 'test-output';
+    elevenOutput.textContent = 'Generazione audio...';
+    ZoeTTS.onStart(() => { elevenOutput.textContent += '\n▶ Riproduzione avviata.'; });
+    ZoeTTS.onEnd(() => { elevenOutput.textContent += '\n■ Riproduzione terminata.'; });
+    ZoeTTS.onError((e) => { elevenOutput.className = 'test-output err'; elevenOutput.textContent += '\n✗ Errore: ' + e.message; });
+    ZoeTTS.zoeTTS('Hi! This is a test of the Zoe voice.').then((ref) => {
+      elevenOutput.textContent += ref.type === 'elevenlabs' ? '\n(voce ElevenLabs)' : '\n(fallback: voce di sistema del browser)';
+      ZoeTTS.playAudio(ref);
+    });
+  });
+
+  // --- Microphone test ---
+  const micOutput = document.getElementById('mic-output');
+  document.getElementById('mic-support-pill').textContent = 'Supporto: ' + (VoiceInput.isSupported() ? 'disponibile ✓' : 'non disponibile ✗ (usa Chrome)');
+
+  VoiceInput.onTranscript((text) => { micOutput.className = 'test-output'; micOutput.textContent = 'Live: ' + text; });
+  VoiceInput.onSilence((text) => { micOutput.className = 'test-output ok'; micOutput.textContent = 'Finale: ' + (text || '(nessun testo rilevato)'); });
+  VoiceInput.onError((err) => { micOutput.className = 'test-output err'; micOutput.textContent = 'Errore (' + err.type + '): ' + err.message; });
+
+  document.getElementById('mic-start-btn').addEventListener('click', () => {
+    micOutput.className = 'test-output';
+    micOutput.textContent = 'In ascolto... parla ora.';
+    VoiceInput.startListening();
+  });
+  document.getElementById('mic-stop-btn').addEventListener('click', () => VoiceInput.stopListening());
+
+  // --- Claude test ---
+  const claudeOutput = document.getElementById('claude-output');
+
+  document.getElementById('claude-start-btn').addEventListener('click', async () => {
+    claudeOutput.textContent = 'Chiamata a Claude...';
+    const line = await Conversation.startConversation();
+    claudeOutput.textContent = 'Zoe: ' + line;
+  });
+
+  document.getElementById('claude-send-btn').addEventListener('click', async () => {
+    const input = document.getElementById('claude-input');
+    const text = input.value.trim();
+    if (!text) return;
+    claudeOutput.textContent += '\n\nTu: ' + text + '\nZoe sta scrivendo...';
+    const reply = await Conversation.sendMessage(text);
+    claudeOutput.textContent = claudeOutput.textContent.replace('Zoe sta scrivendo...', 'Zoe: ' + reply);
+    input.value = '';
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SpeakEasy — Call</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f0a1e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<link rel="stylesheet" href="css/call.css">
+<style>
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    z-index: 20;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .start-overlay-title {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+  .start-overlay-hint {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  .offline-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #ef4444;
+    color: #fff;
+    text-align: center;
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    z-index: 30;
+    display: none;
+  }
+  .offline-banner.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div class="offline-banner" id="offline-banner">📡 Connessione assente — riprova quando sei online</div>
+
+<div class="screen call-screen">
+  <div class="call-timer-section">
+    <div class="call-timer" id="call-timer">5:00</div>
+    <div class="call-progress-track">
+      <div class="call-progress-fill" id="call-progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="call-avatar-section">
+    <div id="zoe-avatar-root" class="zoe-avatar-lg"></div>
+
+    <div class="call-status-row">
+      <div class="sound-wave" id="sound-wave">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="mic-indicator status-hidden" id="mic-indicator">🎤</div>
+      <div class="thinking-indicator status-hidden" id="thinking-indicator">
+        <span>Zoe is thinking</span>
+      </div>
+    </div>
+    <div class="call-status-label" id="call-status-label">Connecting...</div>
+  </div>
+
+  <button class="btn-danger" id="end-call-btn">🔴 End Call</button>
+</div>
+
+<div class="start-overlay" id="start-overlay">
+  <p class="start-overlay-title">Ready to call Zoe?</p>
+  <button class="btn-primary" id="start-call-btn">▶ Tap to start</button>
+  <p class="start-overlay-hint">Serve un tocco per attivare audio e microfono</p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="api-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/zoe-avatar.js"></script>
+<script src="js/session.js"></script>
+<script src="js/elevenlabs.js"></script>
+<script src="js/voice-input.js"></script>
+<script src="js/conversation.js"></script>
+<script>
+  const avatarRoot = ZoeAvatar.mount('#zoe-avatar-root', { mode: 'realistic' });
+  avatarRoot.classList.add('zoe-avatar-lg');
+
+  const soundWave = document.getElementById('sound-wave');
+  const micIndicator = document.getElementById('mic-indicator');
+  const thinkingIndicator = document.getElementById('thinking-indicator');
+  const statusLabel = document.getElementById('call-status-label');
+  const timerEl = document.getElementById('call-timer');
+  const progressFill = document.getElementById('call-progress-fill');
+
+  let sessionActive = true;
+
+  function showStatus(mode) {
+    soundWave.classList.toggle('status-hidden', mode !== 'speaking');
+    micIndicator.classList.toggle('status-hidden', mode !== 'listening');
+    thinkingIndicator.classList.toggle('status-hidden', mode !== 'thinking');
+    const labels = {
+      speaking: 'Zoe is talking...',
+      listening: 'Your turn — speak now!',
+      thinking: 'Zoe is thinking...',
+    };
+    statusLabel.textContent = labels[mode] || '';
+  }
+
+  function zoeSpeak(text) {
+    return new Promise((resolve) => {
+      ZoeAvatar.setState('speaking');
+      showStatus('speaking');
+      ZoeTTS.onEnd(() => {
+        if (!sessionActive) return;
+        ZoeAvatar.setState('idle');
+        resolve();
+      });
+      ZoeTTS.zoeTTS(text).then((ref) => ZoeTTS.playAudio(ref));
+    });
+  }
+
+  function userListen() {
+    return new Promise((resolve) => {
+      ZoeAvatar.setState('listening');
+      showStatus('listening');
+
+      VoiceInput.onSilence((text) => {
+        if (!sessionActive) return;
+        const trimmed = (text || '').trim();
+        if (!trimmed) {
+          VoiceInput.startListening();
+          return;
+        }
+        resolve(trimmed);
+      });
+
+      VoiceInput.onError((err) => {
+        if (!sessionActive) return;
+        if (err.type === 'permission-denied' || err.type === 'unsupported') {
+          statusLabel.textContent = err.message;
+          endCall('mic-error');
+        }
+      });
+
+      VoiceInput.startListening();
+    });
+  }
+
+  async function conversationLoop(initialLine) {
+    let zoeLine = initialLine;
+    while (sessionActive) {
+      await zoeSpeak(zoeLine);
+      if (!sessionActive) break;
+
+      ZoeAvatar.setState('thinking');
+      showStatus('thinking');
+
+      const userText = await userListen();
+      if (!sessionActive) break;
+
+      ZoeAvatar.setState('thinking');
+      showStatus('thinking');
+      zoeLine = await Conversation.sendMessage(userText);
+    }
+  }
+
+  async function endCall(reason) {
+    if (!sessionActive) return;
+    sessionActive = false;
+    ZoeSession.stop();
+    ZoeTTS.stopAudio();
+    VoiceInput.stopListening();
+
+    ZoeAvatar.setState('thinking');
+    showStatus('thinking');
+    statusLabel.textContent = 'Preparing your feedback...';
+
+    try {
+      const feedback = await Conversation.generateFeedback();
+      sessionStorage.setItem('speakeasy_pending_feedback', JSON.stringify({ source: 'call', feedback }));
+    } catch (err) {
+      console.error('SpeakEasy: feedback generation failed', err);
+    }
+
+    window.location.href = 'feedback.html';
+  }
+
+  ZoeSession.onTick((remaining, total) => {
+    timerEl.textContent = ZoeSession.formatTime(remaining);
+    progressFill.style.width = `${(remaining / total) * 100}%`;
+  });
+  ZoeSession.onEnd((reason) => endCall(reason));
+
+  const offlineBanner = document.getElementById('offline-banner');
+  window.addEventListener('offline', () => offlineBanner.classList.add('visible'));
+  window.addEventListener('online', () => offlineBanner.classList.remove('visible'));
+  if (!navigator.onLine) offlineBanner.classList.add('visible');
+
+  document.getElementById('end-call-btn').addEventListener('click', () => endCall('manual'));
+
+  function unlockAudio() {
+    // I browser bloccano audio non avviato da un gesto utente: un play "muto"
+    // qui, dentro il click, sblocca sia <audio> che speechSynthesis per il resto della pagina.
+    try {
+      const silent = new Audio();
+      silent.play().catch(() => {});
+    } catch {}
+    if ('speechSynthesis' in window) {
+      const warmup = new SpeechSynthesisUtterance('');
+      speechSynthesis.speak(warmup);
+    }
+  }
+
+  document.getElementById('start-call-btn').addEventListener('click', () => {
+    unlockAudio();
+    document.getElementById('start-overlay').remove();
+    ZoeSession.start();
+    Conversation.startConversation().then((line) => conversationLoop(line));
+  });
+</script>
+
+</body>
+</html>

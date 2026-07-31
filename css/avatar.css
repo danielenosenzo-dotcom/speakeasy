@@ -1,0 +1,85 @@
+.zoe-avatar {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: zoe-float 4s ease-in-out infinite;
+}
+
+.zoe-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+@keyframes zoe-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.zoe-ring-outer {
+  transform-origin: 120px 120px;
+  animation: zoe-ring-spin 12s linear infinite;
+}
+
+.zoe-ring-inner {
+  transform-origin: 120px 120px;
+  animation: zoe-ring-spin 8s linear infinite reverse;
+}
+
+@keyframes zoe-ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.zoe-eyelid {
+  pointer-events: none;
+}
+
+/* Stato: idle — anelli lenti, respiro leggero */
+.zoe-state-idle .zoe-ring-outer,
+.zoe-state-idle .zoe-ring-inner {
+  animation-duration: 14s;
+}
+
+/* Stato: speaking — anelli veloci, bocca animata (gestita via JS) */
+.zoe-state-speaking .zoe-ring-outer {
+  animation-duration: 3s;
+}
+.zoe-state-speaking .zoe-ring-inner {
+  animation-duration: 2.2s;
+}
+.zoe-state-speaking {
+  animation: zoe-float 1.6s ease-in-out infinite;
+}
+
+/* Stato: listening — anelli lenti, leggero glow sugli occhi */
+.zoe-state-listening .zoe-ring-outer,
+.zoe-state-listening .zoe-ring-inner {
+  animation-duration: 6s;
+}
+.zoe-state-listening .zoe-eye circle,
+.zoe-state-listening .zoe-eye ellipse {
+  filter: drop-shadow(0 0 4px var(--accent-blue));
+}
+
+/* Stato: thinking — leggero tilt e pulsazione opaca */
+.zoe-state-thinking {
+  animation: zoe-think 1.8s ease-in-out infinite;
+}
+@keyframes zoe-think {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(-2deg) translateY(-4px); }
+}
+
+.zoe-avatar.zoe-avatar-lg {
+  width: min(80vw, 320px);
+  height: min(80vw, 320px);
+}
+
+.zoe-avatar.zoe-avatar-sm {
+  width: 96px;
+  height: 96px;
+}

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>SpeakEasy — Regole Grammaticali</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f0a1e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<style>
+  html, body { overflow-y: auto; height: auto; }
+
+  .gr-screen {
+    min-height: 100vh;
+    height: auto;
+    justify-content: flex-start;
+    gap: 1.2rem;
+    padding: 1.5rem 1.4rem 3rem;
+  }
+
+  .gr-topbar {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .back-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 1.3rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gr-title {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+  }
+
+  .gr-topics {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .topic-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface);
+    border: none;
+    border-left: 4px solid var(--accent-green);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem;
+    min-height: 60px;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--font-body);
+  }
+
+  .topic-card:active { transform: scale(0.98); }
+
+  .topic-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .topic-title { font-family: var(--font-heading); font-size: 0.95rem; }
+  .topic-desc { font-size: 0.76rem; color: var(--text-dim); margin-top: 0.1rem; }
+
+  .gr-custom {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .gr-custom input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--surface-2);
+    color: var(--text);
+    border-radius: var(--radius-full);
+    padding: 0.7rem 1.1rem;
+    font-size: 16px;
+    font-family: var(--font-body);
+  }
+
+  .gr-state {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    color: var(--text-dim);
+    padding: 2rem 1rem;
+  }
+
+  .gr-error {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border-left: 4px solid #f87171;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .gr-lesson {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .gr-lesson-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+  }
+
+  .gr-lesson-intro {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .gr-section {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.2rem;
+  }
+
+  .gr-section h3 {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-green);
+  }
+
+  .gr-section p {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0.6rem;
+  }
+
+  .gr-example {
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+  }
+  .gr-example .en { color: var(--accent-blue); }
+  .gr-example .it { color: var(--text-dim); font-size: 0.78rem; margin-top: 0.15rem; }
+
+  .gr-mistakes {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.2rem;
+  }
+
+  .gr-mistake {
+    margin-bottom: 0.7rem;
+    font-size: 0.85rem;
+  }
+  .gr-mistake:last-child { margin-bottom: 0; }
+  .gr-mistake .wrong { color: #f87171; }
+  .gr-mistake .correct { color: var(--accent-green); }
+  .gr-mistake .why { color: var(--text-dim); font-size: 0.8rem; margin-top: 0.2rem; }
+
+  .gr-tip {
+    background: linear-gradient(135deg, rgba(192,132,252,0.12), rgba(244,114,182,0.12));
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  .gr-actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="screen gr-screen">
+  <div class="gr-topbar">
+    <a href="index.html" class="back-link">←</a>
+    <span class="gr-title">📖 Regole Grammaticali</span>
+  </div>
+
+  <div class="gr-topics" id="gr-topics">
+    <button class="topic-card" data-topic="Verbi seguiti da TO + infinito (want to, decide to, hope to, promise to, plan to)">
+      <span class="topic-icon">➡️</span>
+      <span><span class="topic-title">Verbi + TO</span><br><span class="topic-desc">want to, decide to, hope to...</span></span>
+    </button>
+    <button class="topic-card" data-topic="Verbi seguiti da -ING (enjoy, avoid, finish, suggest, mind)">
+      <span class="topic-icon">🔄</span>
+      <span><span class="topic-title">Verbi + -ING</span><br><span class="topic-desc">enjoy doing, avoid doing...</span></span>
+    </button>
+    <button class="topic-card" data-topic="Verbi truffatori che cambiano significato tra -ING e TO + infinito: stop, remember, forget, try">
+      <span class="topic-icon">🎭</span>
+      <span><span class="topic-title">Verbi "truffatori"</span><br><span class="topic-desc">stop, remember, forget, try...</span></span>
+    </button>
+  </div>
+
+  <div class="gr-custom">
+    <input type="text" id="custom-topic-input" placeholder="Oppure scrivi un argomento a piacere...">
+    <button class="btn-primary" id="custom-topic-btn" style="padding:0.7rem 1.2rem; font-size:0.85rem;">Vai</button>
+  </div>
+
+  <div id="gr-content"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="api-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/ai-content.js"></script>
+<script>
+  const SYSTEM_PROMPT = `Stai creando una lezione di grammatica inglese per una ragazza italiana di 15 anni, al primo anno di liceo scientifico Cambridge. Deve capire bene l'argomento richiesto.
+
+Rispondi SOLO con un oggetto JSON valido (niente markdown, niente code fence) con questa forma esatta:
+{
+  "title": "...",
+  "intro": "...",
+  "sections": [
+    { "subtitle": "...", "explanation_it": "...", "examples": [{"en": "...", "it": "..."}] }
+  ],
+  "common_mistakes": [
+    { "wrong": "...", "correct": "...", "why_it": "..." }
+  ],
+  "tip": "..."
+}
+
+Regole:
+- "intro", "explanation_it", "why_it", "tip" in italiano, chiari e non accademici — parla come una spiegazione amichevole, non un libro di testo
+- "examples" mostra la frase inglese (en) con traduzione italiana (it)
+- 3-5 "sections", 2-4 "common_mistakes"
+- Tono incoraggiante, adatto a un'adolescente, mai condiscendente`;
+
+  const topicsEl = document.getElementById('gr-topics');
+  const customInput = document.getElementById('custom-topic-input');
+  const customBtn = document.getElementById('custom-topic-btn');
+  const contentEl = document.getElementById('gr-content');
+
+  function setState(html) {
+    contentEl.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  async function loadTopic(topic) {
+    topicsEl.style.display = 'none';
+    customInput.parentElement.style.display = 'none';
+    setState('<div class="gr-state">✨ Zoe sta preparando la lezione...</div>');
+
+    try {
+      const lesson = await AIContent.askJSON(
+        `Argomento richiesto: ${topic}`,
+        SYSTEM_PROMPT,
+        1400
+      );
+      renderLesson(lesson, topic);
+      SpeakEasyStorage.saveGrammaticaLezione({ topic, title: lesson.title || topic });
+    } catch (err) {
+      setState(`
+        <div class="gr-error">
+          😕 ${escapeHtml(err.message)}
+          <div class="gr-actions"><button class="btn-secondary" id="retry-btn" style="margin-top:0.8rem">Riprova</button></div>
+        </div>
+      `);
+      document.getElementById('retry-btn').addEventListener('click', () => loadTopic(topic));
+    }
+  }
+
+  function renderLesson(lesson, topic) {
+    const sections = (lesson.sections || []).map((s) => `
+      <div class="gr-section">
+        <h3>${escapeHtml(s.subtitle)}</h3>
+        <p>${escapeHtml(s.explanation_it)}</p>
+        ${(s.examples || []).map((ex) => `
+          <div class="gr-example">
+            <div class="en">✅ ${escapeHtml(ex.en)}</div>
+            <div class="it">${escapeHtml(ex.it)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+
+    const mistakes = (lesson.common_mistakes || []).length ? `
+      <div class="gr-mistakes">
+        <h3 style="font-family:var(--font-heading);color:#f87171;margin-bottom:0.6rem;">⚠️ Errori comuni</h3>
+        ${(lesson.common_mistakes || []).map((m) => `
+          <div class="gr-mistake">
+            <div class="wrong">❌ ${escapeHtml(m.wrong)}</div>
+            <div class="correct">✅ ${escapeHtml(m.correct)}</div>
+            <div class="why">💡 ${escapeHtml(m.why_it)}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : '';
+
+    const tip = lesson.tip ? `<div class="gr-tip">💡 ${escapeHtml(lesson.tip)}</div>` : '';
+
+    setState(`
+      <div class="gr-lesson">
+        <div>
+          <div class="gr-lesson-title">${escapeHtml(lesson.title || topic)}</div>
+          <p class="gr-lesson-intro">${escapeHtml(lesson.intro || '')}</p>
+        </div>
+        ${sections}
+        ${mistakes}
+        ${tip}
+        <div class="gr-actions">
+          <button class="btn-secondary" id="another-topic-btn">Un altro argomento</button>
+        </div>
+      </div>
+    `);
+
+    document.getElementById('another-topic-btn').addEventListener('click', () => {
+      topicsEl.style.display = 'flex';
+      customInput.parentElement.style.display = 'flex';
+      setState('');
+    });
+  }
+
+  topicsEl.querySelectorAll('.topic-card').forEach((btn) => {
+    btn.addEventListener('click', () => loadTopic(btn.dataset.topic));
+  });
+
+  customBtn.addEventListener('click', () => {
+    const val = customInput.value.trim();
+    if (val) loadTopic(val);
+  });
+  customInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') customBtn.click();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SpeakEasy</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f0a1e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<style>
+  html, body { overflow-y: auto; height: auto; }
+
+  .home-screen {
+    min-height: 100vh;
+    height: auto;
+    justify-content: flex-start;
+    gap: 1.4rem;
+    padding: 2rem 1.4rem 2.5rem;
+  }
+
+  .home-header {
+    text-align: center;
+  }
+
+  .home-logo {
+    font-size: 1.7rem;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .home-tagline {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+  }
+
+  .home-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .zoe-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+  }
+
+  .online-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    display: inline-block;
+  }
+
+  .home-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .home-badge strong {
+    color: var(--accent-purple);
+  }
+
+  .home-menu {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .menu-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface);
+    border: none;
+    border-left: 4px solid var(--card-accent, var(--accent-purple));
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem;
+    min-height: 64px;
+    text-align: left;
+    color: var(--text);
+    text-decoration: none;
+    font-family: var(--font-body);
+  }
+
+  .menu-card:active {
+    transform: scale(0.98);
+  }
+
+  .menu-card-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+
+  .menu-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .menu-card-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+  }
+
+  .menu-card-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  .connecting-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    z-index: 10;
+  }
+
+  .connecting-overlay.active {
+    display: flex;
+  }
+
+  .connecting-text {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    color: var(--accent-purple);
+  }
+
+  .connecting-dots span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin: 0 3px;
+    border-radius: 50%;
+    background: var(--accent-pink);
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+  .connecting-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .connecting-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes dot-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen home-screen">
+  <div class="home-header">
+    <h1 class="home-logo">SpeakEasy ✨</h1>
+    <p class="home-tagline">Your English bestie is waiting...</p>
+  </div>
+
+  <div class="home-avatar-section">
+    <div id="zoe-avatar-root" class="zoe-avatar-sm"></div>
+    <div class="zoe-name-row">
+      <span>Zoe 🇬🇧</span>
+      <span class="online-dot"></span>
+    </div>
+  </div>
+
+  <div class="home-badge" id="session-badge">
+    <span>📊</span>
+    <span><strong id="session-count">0</strong> attività completate</span>
+  </div>
+
+  <div class="home-menu">
+    <button class="menu-card" id="call-btn" style="--card-accent: var(--accent-pink)">
+      <span class="menu-card-icon">📞</span>
+      <span class="menu-card-text">
+        <span class="menu-card-title">Speaking</span>
+        <span class="menu-card-desc">Chiamata libera di 5 minuti con Zoe</span>
+      </span>
+    </button>
+
+    <a class="menu-card" href="guidata.html" style="--card-accent: var(--accent-blue)">
+      <span class="menu-card-icon">🗣️</span>
+      <span class="menu-card-text">
+        <span class="menu-card-title">Conversazione Guidata</span>
+        <span class="menu-card-desc">Scegli uno scenario e fai pratica</span>
+      </span>
+    </a>
+
+    <a class="menu-card" href="grammatica.html" style="--card-accent: var(--accent-green)">
+      <span class="menu-card-icon">📖</span>
+      <span class="menu-card-text">
+        <span class="menu-card-title">Regole Grammaticali</span>
+        <span class="menu-card-desc">Impara i Verb Patterns con Zoe</span>
+      </span>
+    </a>
+
+    <a class="menu-card" href="esercizi.html" style="--card-accent: var(--accent-purple)">
+      <span class="menu-card-icon">✏️</span>
+      <span class="menu-card-text">
+        <span class="menu-card-title">Esercizi Pratici</span>
+        <span class="menu-card-desc">Mettiti alla prova sui Verb Patterns</span>
+      </span>
+    </a>
+  </div>
+</div>
+
+<div class="connecting-overlay" id="connecting-overlay">
+  <p class="connecting-text">Connecting to Zoe...</p>
+  <div class="connecting-dots"><span></span><span></span><span></span></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/zoe-avatar.js"></script>
+<script>
+  ZoeAvatar.mount('#zoe-avatar-root', { mode: 'realistic' });
+  ZoeAvatar.setState('idle');
+
+  function totalActivities() {
+    return SpeakEasyStorage.getSessions().length
+      + SpeakEasyStorage.getGrammaticaProgress().length
+      + SpeakEasyStorage.getEserciziRisultati().length
+      + SpeakEasyStorage.getGuidataSessioni().length;
+  }
+
+  document.getElementById('session-count').textContent = totalActivities();
+  SpeakEasyStorage.onUpdate(() => {
+    document.getElementById('session-count').textContent = totalActivities();
+  });
+
+  document.getElementById('call-btn').addEventListener('click', () => {
+    const overlay = document.getElementById('connecting-overlay');
+    overlay.classList.add('active');
+    setTimeout(() => {
+      window.location.href = 'call.html';
+    }, 1500);
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+
+</body>
+</html>

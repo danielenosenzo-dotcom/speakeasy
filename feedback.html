@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SpeakEasy — Feedback</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f0a1e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<style>
+  html, body { overflow-y: auto; height: auto; }
+
+  .feedback-screen {
+    height: auto;
+    min-height: 100vh;
+    justify-content: flex-start;
+    gap: 1.5rem;
+    padding: 2.5rem 1.5rem 3rem;
+  }
+
+  .fb-item {
+    width: 100%;
+    max-width: 420px;
+    opacity: 0;
+    transform: translateY(-14px);
+    animation: fb-drop 0.5s ease forwards;
+  }
+
+  @keyframes fb-drop {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fb-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .fb-title {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+  }
+
+  .fb-score-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .fb-score {
+    font-family: var(--font-heading);
+    font-size: 2.4rem;
+  }
+
+  .fb-level-badge {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border-radius: var(--radius-full);
+    background: var(--surface-2);
+    font-size: 0.8rem;
+    font-family: var(--font-heading);
+    text-transform: capitalize;
+  }
+
+  .fb-section {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.4rem;
+  }
+
+  .fb-section h2 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .fb-strengths li {
+    color: var(--accent-green);
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    list-style: none;
+  }
+
+  .fb-error-card {
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .fb-error-card:last-child { margin-bottom: 0; }
+
+  .fb-wrong { color: #f87171; }
+  .fb-correct { color: var(--accent-green); }
+  .fb-rule {
+    display: inline-block;
+    margin-top: 0.3rem;
+    font-size: 0.72rem;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .fb-explanation {
+    margin-top: 0.35rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  .fb-encouragement {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    font-style: italic;
+    padding: 0 1rem;
+  }
+
+  .fb-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    padding: 0.8rem 2rem;
+    border-radius: var(--radius-full);
+    min-height: 48px;
+  }
+
+  .fb-saved-note {
+    color: var(--accent-green);
+    font-size: 0.8rem;
+    min-height: 1.2em;
+  }
+
+  .fb-loading {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 3rem 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="screen feedback-screen" id="feedback-root">
+  <div class="fb-loading" id="fb-loading">Loading feedback...</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/storage.js"></script>
+<script>
+  const root = document.getElementById('feedback-root');
+
+  function scoreColor(score) {
+    if (score >= 8) return 'var(--accent-green)';
+    if (score >= 6) return 'var(--accent-blue)';
+    return 'var(--accent-pink)';
+  }
+
+  function render(payload) {
+    root.innerHTML = '';
+    const feedback = payload.feedback;
+
+    const items = [];
+
+    items.push(makeHeader(payload));
+    items.push(makeScoreCard(feedback));
+    if (feedback.strengths && feedback.strengths.length) items.push(makeStrengths(feedback.strengths));
+    if (feedback.errors && feedback.errors.length) items.push(makeErrors(feedback.errors));
+    if (feedback.encouragement) items.push(makeEncouragement(feedback.encouragement));
+    items.push(makeActions(payload));
+
+    items.forEach((el, i) => {
+      el.classList.add('fb-item');
+      el.style.animationDelay = `${i * 0.12}s`;
+      root.appendChild(el);
+    });
+  }
+
+  function makeHeader(payload) {
+    const div = document.createElement('div');
+    div.className = 'fb-header';
+    const title = payload.source === 'guidata'
+      ? `Great roleplay! Here's your feedback 📋 <span style="font-weight:400;font-size:0.8em;color:var(--text-dim)">(${payload.scenario})</span>`
+      : "Great chat! Here's your feedback 📋";
+    div.innerHTML = `
+      <div class="zoe-avatar zoe-avatar-sm" id="fb-avatar"></div>
+      <p class="fb-title">${title}</p>
+    `;
+    return div;
+  }
+
+  function makeScoreCard(feedback) {
+    const div = document.createElement('div');
+    div.className = 'fb-score-card';
+    const score = typeof feedback.score === 'number' ? feedback.score : 0;
+    div.innerHTML = `
+      <div class="fb-score" style="color: ${scoreColor(score)}">${score}/10 ⭐</div>
+      <div class="fb-level-badge">${feedback.level || 'intermediate'}</div>
+    `;
+    return div;
+  }
+
+  function makeStrengths(strengths) {
+    const div = document.createElement('div');
+    div.className = 'fb-section';
+    div.innerHTML = `<h2>What you did great ✅</h2>`;
+    const ul = document.createElement('ul');
+    ul.className = 'fb-strengths';
+    strengths.forEach((s) => {
+      const li = document.createElement('li');
+      li.textContent = `✅ ${s}`;
+      ul.appendChild(li);
+    });
+    div.appendChild(ul);
+    return div;
+  }
+
+  function makeErrors(errors) {
+    const div = document.createElement('div');
+    div.className = 'fb-section';
+    div.innerHTML = `<h2>Things to remember 📌</h2>`;
+    errors.forEach((e) => {
+      const card = document.createElement('div');
+      card.className = 'fb-error-card';
+      card.innerHTML = `
+        <div class="fb-wrong">❌ ${e.wrong}</div>
+        <div class="fb-correct">✅ ${e.correct}</div>
+        ${e.rule ? `<div class="fb-rule">${e.rule}</div>` : ''}
+        ${e.explanation_it ? `<div class="fb-explanation">💡 ${e.explanation_it}</div>` : ''}
+      `;
+      div.appendChild(card);
+    });
+    return div;
+  }
+
+  function makeEncouragement(text) {
+    const p = document.createElement('p');
+    p.className = 'fb-encouragement';
+    p.textContent = text;
+    return p;
+  }
+
+  function makeActions(payload) {
+    const div = document.createElement('div');
+    div.className = 'fb-actions';
+    const isGuidata = payload.source === 'guidata';
+    div.innerHTML = `
+      <button class="btn-primary" id="call-again-btn">${isGuidata ? '🗣️ Try another scenario' : '📞 Call again'}</button>
+      <button class="btn-secondary" id="save-progress-btn">💾 Save progress</button>
+      <p class="fb-saved-note" id="fb-saved-note"></p>
+    `;
+
+    div.querySelector('#call-again-btn').addEventListener('click', () => {
+      window.location.href = isGuidata ? 'guidata.html' : 'index.html';
+    });
+
+    div.querySelector('#save-progress-btn').addEventListener('click', () => {
+      if (isGuidata) {
+        SpeakEasyStorage.saveGuidataSessione({ scenario: payload.scenario, ...payload.feedback });
+      } else {
+        SpeakEasyStorage.saveSession(payload.feedback);
+      }
+      div.querySelector('#fb-saved-note').textContent = 'Progress saved ✓';
+    });
+
+    return div;
+  }
+
+  function loadFeedback() {
+    const raw = sessionStorage.getItem('speakeasy_pending_feedback');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  const payload = loadFeedback();
+  if (!payload || !payload.feedback) {
+    window.location.href = 'index.html';
+  } else {
+    sessionStorage.removeItem('speakeasy_pending_feedback');
+    render(payload);
+  }
+</script>
+<script src="js/zoe-avatar.js"></script>
+<script>
+  const fbAvatarRoot = document.getElementById('fb-avatar');
+  if (fbAvatarRoot) {
+    ZoeAvatar.mount('#fb-avatar', { mode: 'realistic' });
+    ZoeAvatar.setState('idle');
+  }
+</script>
+
+</body>
+</html>
