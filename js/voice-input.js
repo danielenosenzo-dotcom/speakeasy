@@ -1,5 +1,5 @@
 const VoiceInput = (() => {
-  const SILENCE_MS = 1500;
+  const SILENCE_MS = 2500;
   const CONFIDENCE_THRESHOLD = 0.3;
 
   const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -125,10 +125,21 @@ const VoiceInput = (() => {
     listening = false;
   }
 
+  // Come stopListening(), ma NON marca stoppedByUser: onend continua a
+  // consegnare la trascrizione finale, esattamente come farebbe il timer
+  // di silenzio — serve per lasciare all'utente il controllo manuale di
+  // "ho finito di parlare" invece di aspettare il timeout automatico.
+  function finishListening() {
+    if (!listening) return;
+    if (silenceTimer) clearTimeout(silenceTimer);
+    try { recognition.stop(); } catch {}
+  }
+
   function onTranscript(cb) { transcriptCb = cb; }
   function onSilence(cb) { silenceCb = cb; }
   function onError(cb) { errorCb = cb; }
   function getPermissionStatus() { return permissionStatus; }
+  function isListening() { return listening; }
 
-  return { startListening, stopListening, onTranscript, onSilence, onError, getPermissionStatus, isSupported };
+  return { startListening, stopListening, finishListening, onTranscript, onSilence, onError, getPermissionStatus, isSupported, isListening };
 })();

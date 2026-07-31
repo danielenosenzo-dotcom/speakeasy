@@ -79,12 +79,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--surface);
-  font-size: 1.2rem;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
   animation: mic-pulse 1.4s ease-in-out infinite;
+}
+
+.mic-indicator:active {
+  transform: scale(0.92);
 }
 
 @keyframes mic-pulse {

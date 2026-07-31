@@ -84,7 +84,7 @@
       <div class="sound-wave" id="sound-wave">
         <span></span><span></span><span></span><span></span><span></span>
       </div>
-      <div class="mic-indicator status-hidden" id="mic-indicator">🎤</div>
+      <button class="mic-indicator status-hidden" id="mic-indicator" type="button">🎤</button>
       <div class="thinking-indicator status-hidden" id="thinking-indicator">
         <span>Zoe is thinking</span>
       </div>
@@ -132,7 +132,7 @@
     thinkingIndicator.classList.toggle('status-hidden', mode !== 'thinking');
     const labels = {
       speaking: 'Zoe is talking...',
-      listening: 'Your turn — speak now!',
+      listening: 'Your turn — speak now! Tap 🎤 when you\'re done.',
       thinking: 'Zoe is thinking...',
     };
     statusLabel.textContent = labels[mode] || '';
@@ -232,6 +232,10 @@
   if (!navigator.onLine) offlineBanner.classList.add('visible');
 
   document.getElementById('end-call-btn').addEventListener('click', () => endCall('manual'));
+
+  micIndicator.addEventListener('click', () => {
+    if (VoiceInput.isListening()) VoiceInput.finishListening();
+  });
 
   function unlockAudio() {
     // I browser bloccano audio non avviato da un gesto utente: un play "muto"

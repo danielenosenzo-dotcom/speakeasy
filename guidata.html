@@ -206,7 +206,7 @@
     <div id="zoe-avatar-root" class="zoe-avatar-lg"></div>
     <div class="call-status-row">
       <div class="sound-wave" id="sound-wave"><span></span><span></span><span></span><span></span><span></span></div>
-      <div class="mic-indicator status-hidden" id="mic-indicator">🎤</div>
+      <button class="mic-indicator status-hidden" id="mic-indicator" type="button">🎤</button>
       <div class="thinking-indicator status-hidden" id="thinking-indicator"><span>Zoe is thinking</span></div>
     </div>
     <div class="call-status-label" id="call-status-label">Connecting...</div>
@@ -324,7 +324,7 @@
     soundWave.classList.toggle('status-hidden', mode !== 'speaking');
     micIndicator.classList.toggle('status-hidden', mode !== 'listening');
     thinkingIndicator.classList.toggle('status-hidden', mode !== 'thinking');
-    const labels = { speaking: 'Zoe is talking...', listening: 'Your turn — speak now!', thinking: 'Zoe is thinking...' };
+    const labels = { speaking: 'Zoe is talking...', listening: 'Your turn — speak now! Tap 🎤 when you\'re done.', thinking: 'Zoe is thinking...' };
     statusLabel.textContent = labels[mode] || '';
   }
 
@@ -410,6 +410,10 @@
   });
   ZoeSession.onEnd((reason) => endCall(reason));
   document.getElementById('end-call-btn').addEventListener('click', () => endCall('manual'));
+
+  micIndicator.addEventListener('click', () => {
+    if (VoiceInput.isListening()) VoiceInput.finishListening();
+  });
 
   const offlineBanner = document.getElementById('offline-banner');
   window.addEventListener('offline', () => offlineBanner.classList.add('visible'));
