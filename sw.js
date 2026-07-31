@@ -1,4 +1,4 @@
-const CACHE_NAME = 'speakeasy-v4';
+const CACHE_NAME = 'speakeasy-v5';
 const APP_SHELL = [
   './index.html',
   './call.html',
