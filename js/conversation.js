@@ -77,7 +77,8 @@ A JSON array of any verb-pattern mistakes found in the student's LAST message (e
       throw new Error(`Claude API error ${res.status}: ${await res.text().catch(() => '')}`);
     }
     const data = await res.json();
-    return data.content && data.content[0] ? data.content[0].text : '';
+    const textBlock = (data.content || []).find((b) => b.type === 'text');
+    return textBlock ? textBlock.text : '';
   }
 
   async function startConversation() {

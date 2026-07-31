@@ -29,6 +29,7 @@ const ZoeTTS = (() => {
             similarity_boost: 0.8,
             style: 0.6,
             use_speaker_boost: true,
+            speed: 0.7,
           },
         }),
         signal: controller.signal,

@@ -37,7 +37,8 @@ const AIContent = (() => {
     }
 
     const data = await res.json();
-    return data.content && data.content[0] ? data.content[0].text : '';
+    const textBlock = (data.content || []).find((b) => b.type === 'text');
+    return textBlock ? textBlock.text : '';
   }
 
   async function askJSON(userPrompt, systemPrompt, maxTokens = 1200) {
