@@ -275,7 +275,7 @@ Regole:
       const lesson = await AIContent.askJSON(
         `Argomento richiesto: ${topic}`,
         SYSTEM_PROMPT,
-        1400
+        3500
       );
       renderLesson(lesson, topic);
       SpeakEasyStorage.saveGrammaticaLezione({ topic, title: lesson.title || topic });

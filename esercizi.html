@@ -274,7 +274,7 @@ Regole:
     contentEl.innerHTML = '<div class="ex-state">✏️ Zoe sta preparando gli esercizi...</div>';
 
     try {
-      const data = await AIContent.askJSON(`Argomento richiesto: ${topic}`, SYSTEM_PROMPT, 1600);
+      const data = await AIContent.askJSON(`Argomento richiesto: ${topic}`, SYSTEM_PROMPT, 3000);
       quiz = Array.isArray(data) ? data : [];
       if (quiz.length === 0) throw new Error('Nessun esercizio generato — riprova.');
       currentIndex = 0;

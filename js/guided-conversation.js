@@ -138,7 +138,7 @@ Output ONLY a valid JSON object (no markdown, no code fences) with this exact sh
 Pick the 3-5 most useful errors (deduplicate). "strengths" can be in Italian. "encouragement" should sound like Zoe: warm and casual, mostly English, mentioning the scenario.`;
 
     try {
-      const raw = await callClaude([{ role: 'user', content: prompt }], 700);
+      const raw = await callClaude([{ role: 'user', content: prompt }], 1200);
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch (err) {
       console.error('SpeakEasy: GuidedConversation.generateFeedback failed', err);
