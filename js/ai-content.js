@@ -4,7 +4,7 @@ const AIContent = (() => {
 
   async function ask(userPrompt, systemPrompt, maxTokens = 1000) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    const timeout = setTimeout(() => controller.abort(), 45000);
 
     let res;
     try {
