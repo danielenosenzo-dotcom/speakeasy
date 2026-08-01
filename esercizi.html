@@ -47,12 +47,28 @@
     font-size: 1.2rem;
   }
 
-  .ex-topics {
+  .ex-topics, .ex-units {
     width: 100%;
     max-width: 480px;
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
+  }
+
+  .unit-subtitle {
+    font-size: 0.76rem;
+    color: var(--text-dim);
+    margin-top: 0.1rem;
+  }
+
+  .back-to-units {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    text-align: left;
+    padding: 0.3rem 0;
+    margin-bottom: -0.3rem;
   }
 
   .topic-card {
@@ -82,10 +98,13 @@
     animation: ex-drop 0.4s ease forwards;
     transition: transform 0.15s ease;
   }
-  .ex-topics .topic-card:nth-child(1) { animation-delay: 0.05s; }
-  .ex-topics .topic-card:nth-child(2) { animation-delay: 0.12s; }
-  .ex-topics .topic-card:nth-child(3) { animation-delay: 0.19s; }
-  .ex-topics .topic-card:nth-child(4) { animation-delay: 0.26s; }
+  .ex-topics .topic-card:nth-child(1), .ex-units .topic-card:nth-child(1) { animation-delay: 0.04s; }
+  .ex-topics .topic-card:nth-child(2), .ex-units .topic-card:nth-child(2) { animation-delay: 0.09s; }
+  .ex-topics .topic-card:nth-child(3), .ex-units .topic-card:nth-child(3) { animation-delay: 0.14s; }
+  .ex-topics .topic-card:nth-child(4), .ex-units .topic-card:nth-child(4) { animation-delay: 0.19s; }
+  .ex-topics .topic-card:nth-child(5), .ex-units .topic-card:nth-child(5) { animation-delay: 0.24s; }
+  .ex-topics .topic-card:nth-child(6), .ex-units .topic-card:nth-child(6) { animation-delay: 0.29s; }
+  .ex-topics .topic-card:nth-child(7), .ex-units .topic-card:nth-child(7) { animation-delay: 0.34s; }
   @keyframes ex-drop {
     to { opacity: 1; transform: translateY(0); }
   }
@@ -243,24 +262,8 @@
     <span class="ex-title">✏️ Esercizi Pratici</span>
   </div>
 
-  <div class="ex-topics" id="ex-topics">
-    <button class="topic-card" data-topic="Verbi seguiti da TO + infinito (want to, decide to, hope to, promise to, plan to)">
-      <span class="topic-icon">➡️</span>
-      <span><span class="topic-title">Verbi + TO</span><br><span class="topic-desc">want to, decide to, hope to...</span></span>
-    </button>
-    <button class="topic-card" data-topic="Verbi seguiti da -ING (enjoy, avoid, finish, suggest, mind)">
-      <span class="topic-icon">🔄</span>
-      <span><span class="topic-title">Verbi + -ING</span><br><span class="topic-desc">enjoy doing, avoid doing...</span></span>
-    </button>
-    <button class="topic-card" data-topic="Verbi truffatori che cambiano significato tra -ING e TO + infinito: stop, remember, forget, try">
-      <span class="topic-icon">🎭</span>
-      <span><span class="topic-title">Verbi "truffatori"</span><br><span class="topic-desc">stop, remember, forget, try...</span></span>
-    </button>
-    <button class="topic-card" data-topic="Mix di tutti i verb patterns (TO + infinito, -ING, verbi truffatori)">
-      <span class="topic-icon">🎲</span>
-      <span><span class="topic-title">Mix di tutto</span><br><span class="topic-desc">un po' di tutti gli argomenti</span></span>
-    </button>
-  </div>
+  <div class="ex-units" id="ex-units"></div>
+  <div class="ex-topics" id="ex-topics" style="display:none;"></div>
 
   <div id="ex-content"></div>
 </div>
@@ -291,8 +294,76 @@ Regole:
 - Varia i verbi usati, non ripetere sempre lo stesso esempio
 - "explanation_it" in italiano, breve, chiara, non condiscendente`;
 
+  const UNITS = [
+    { id: 'u1', title: 'Unit 1', subtitle: 'Appearance, personality and relationships', emoji: '🧑', topics: [
+      { label: 'Present Simple vs Continuous', desc: 'Verbi stativi e dinamici', prompt: 'Present Simple vs Present Continuous, inclusa la differenza tra verbi stativi (stative) e dinamici' },
+      { label: 'Domande soggetto e oggetto', desc: 'Wh-questions', prompt: 'Subject and object questions, Wh-questions che finiscono con una preposizione' },
+      { label: 'Aggettivi di personalità', desc: 'Emozioni in -ing e -ed', prompt: 'Aggettivi di personalità, contrari, prefissi negativi, aggettivi + preposizione, aggettivi di emozione in -ing e -ed' },
+      { label: 'Present Perfect (for/since)', desc: 'Durata nel presente', prompt: 'Present Perfect per esprimere la durata nel presente con for e since' },
+    ]},
+    { id: 'u2', title: 'Unit 2', subtitle: 'Sport and Leisure', emoji: '⚽', topics: [
+      { label: 'Past Simple vs Continuous', desc: 'Azioni in corso nel passato', prompt: 'Past Simple vs Past Continuous, uso di when e while' },
+      { label: 'Past Simple vs Present Perfect', desc: 'Passato definito e indefinito', prompt: 'Past Simple vs Present Perfect, uso di ever/never/already/yet/still/just, been vs gone' },
+      { label: 'Used to / Would', desc: 'Abitudini passate', prompt: 'Used to e would per esprimere abitudini passate, e be/get used to + -ing' },
+      { label: 'Past Perfect', desc: 'Sequenza di eventi passati', prompt: 'Past Perfect per descrivere la sequenza di eventi passati' },
+      { label: 'Verbi + TO', desc: 'want to, decide to, hope to...', prompt: 'Verbi seguiti da TO + infinito (want to, decide to, hope to, promise to, plan to)' },
+      { label: 'Verbi + -ING', desc: 'enjoy doing, avoid doing...', prompt: 'Verbi seguiti da -ING (enjoy, avoid, finish, suggest, mind)' },
+      { label: 'Verbi "truffatori"', desc: 'stop, remember, forget, try...', prompt: 'Verbi che cambiano significato tra -ING e TO + infinito: stop, remember, forget, try, regret, mean' },
+    ]},
+    { id: 'u3', title: 'Unit 3', subtitle: 'Travelling', emoji: '✈️', topics: [
+      { label: 'Modali di deduzione', desc: "must, can't, may, might, could", prompt: "Modali di deduzione e supposizione riferiti al presente e al passato: must, can't, may, might, could" },
+    ]},
+    { id: 'u4', title: 'Unit 4', subtitle: 'Food', emoji: '🍕', topics: [
+      { label: 'Le forme del futuro', desc: 'will, going to, present continuous', prompt: 'Forme del futuro: Present Continuous per piani, going to per intenzioni, will per previsioni/promesse/decisioni immediate' },
+      { label: 'Future Continuous e Perfect', desc: 'will be doing, will have done', prompt: 'Future Continuous (will be doing) e Future Perfect (will have done)' },
+    ]},
+    { id: 'u5', title: 'Unit 5', subtitle: 'Planet Earth', emoji: '🌍', topics: [
+      { label: 'Relative clauses', desc: 'who, which, that, where, whose', prompt: 'Defining and non-defining relative clauses: who/which/that/where/when/whose' },
+      { label: 'Articolo "the"', desc: 'Usi dell\'articolo determinativo', prompt: 'Usi dell\'articolo determinativo "the" in inglese' },
+    ]},
+    { id: 'altro', title: 'Altri argomenti', subtitle: "Studiati durante l'anno", emoji: '📚', topics: [
+      { label: 'Modali di obbligo', desc: "must, have to, should...", prompt: "Modali ed espressioni di obbligo, necessità, proibizione: must, have to, mustn't, can't, be allowed to, don't have to, needn't, should" },
+      { label: 'Comparativi e superlativi', desc: 'Aggettivi, nomi e verbi', prompt: 'Comparativi e superlativi con aggettivi (anche irregolari), nomi e verbi' },
+      { label: 'Condizionali', desc: 'Zero, primo e secondo', prompt: 'Zero, First e Second Conditional: struttura di base e usi di if/unless' },
+      { label: 'Mix di tutto', desc: "un po' di tutti gli argomenti", prompt: 'Mix di argomenti vari: verb patterns, tempi verbali, modali, comparativi, relative clauses' },
+    ]},
+  ];
+
+  const unitsEl = document.getElementById('ex-units');
   const topicsEl = document.getElementById('ex-topics');
   const contentEl = document.getElementById('ex-content');
+
+  function renderUnits() {
+    unitsEl.innerHTML = UNITS.map((u) => `
+      <button class="topic-card" data-unit="${u.id}">
+        <span class="topic-icon">${u.emoji}</span>
+        <span><span class="topic-title">${u.title}</span><br><span class="unit-subtitle">${u.subtitle}</span></span>
+      </button>
+    `).join('');
+    unitsEl.querySelectorAll('.topic-card').forEach((btn) => {
+      btn.addEventListener('click', () => renderUnitTopics(UNITS.find((u) => u.id === btn.dataset.unit)));
+    });
+    unitsEl.style.display = 'flex';
+    topicsEl.style.display = 'none';
+  }
+
+  function renderUnitTopics(unit) {
+    topicsEl.innerHTML = `
+      <button class="back-to-units" id="back-to-units-btn">← Tutte le unità</button>
+      ${unit.topics.map((t) => `
+        <button class="topic-card" data-prompt="${escapeHtml(t.prompt)}">
+          <span class="topic-icon">${unit.emoji}</span>
+          <span><span class="topic-title">${escapeHtml(t.label)}</span><br><span class="topic-desc">${escapeHtml(t.desc)}</span></span>
+        </button>
+      `).join('')}
+    `;
+    topicsEl.querySelectorAll('.topic-card').forEach((btn) => {
+      btn.addEventListener('click', () => loadExercises(btn.dataset.prompt));
+    });
+    document.getElementById('back-to-units-btn').addEventListener('click', renderUnits);
+    unitsEl.style.display = 'none';
+    topicsEl.style.display = 'flex';
+  }
   let quiz = [];
   let currentIndex = 0;
   let score = 0;
@@ -310,6 +381,7 @@ Regole:
 
   async function loadExercises(topic) {
     currentTopic = topic;
+    unitsEl.style.display = 'none';
     topicsEl.style.display = 'none';
     contentEl.innerHTML = `
       <div class="ex-state">
@@ -432,14 +504,12 @@ Regole:
     `;
     document.getElementById('retry-topic-btn').addEventListener('click', () => loadExercises(currentTopic));
     document.getElementById('another-topic-btn').addEventListener('click', () => {
-      topicsEl.style.display = 'flex';
+      renderUnits();
       contentEl.innerHTML = '';
     });
   }
 
-  topicsEl.querySelectorAll('.topic-card').forEach((btn) => {
-    btn.addEventListener('click', () => loadExercises(btn.dataset.topic));
-  });
+  renderUnits();
 </script>
 
 </body>
