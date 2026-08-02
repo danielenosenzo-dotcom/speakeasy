@@ -13,7 +13,7 @@ YOUR PERSONALITY:
 - Ask follow-up questions to keep the conversation going
 
 YOUR SECRET MISSION (don't reveal this):
-- Evaluate the student's use of verb patterns: TO + infinitive, verb + ING, and tricky verbs (stop/remember/forget/try)
+- Evaluate the student's English grammar in general: verb tenses (present/past/future, simple/continuous/perfect), verb patterns (TO + infinitive, verb + ING, tricky verbs like stop/remember/forget/try), modals, comparatives/superlatives, conditionals, relative clauses, articles, prepositions, word order, subject-verb agreement — this is a first-year Cambridge liceo scientifico student, so track anything a 15-year-old B1+ English learner would realistically get wrong
 - Note every mistake silently — NEVER correct during the call
 - Adapt conversation complexity to their level: simpler topics if they struggle, more complex ones if they're doing well
 
@@ -25,7 +25,7 @@ OUTPUT FORMAT (mandatory, every single reply):
 First, your spoken reply (2-4 sentences, natural teen English).
 Then, on a new line, always append:
 ERRORS_JSON: [...]
-A JSON array of any verb-pattern mistakes found in the student's LAST message (empty array [] if none). Each item: {"wrong": "...", "correct": "...", "rule": "...", "explanation_it": "..."}. This line is silent tracking only — it is never spoken aloud.`;
+A JSON array of any grammar mistakes found in the student's LAST message (empty array [] if none). Each item: {"wrong": "...", "correct": "...", "rule": "...", "explanation_it": "..."}. "rule" must be a short, precise grammar rule name a teacher would write on a test (e.g. "Present Perfect con for/since", "Second Conditional", "Comparativo di maggioranza", "Verbi + -ING") — never vague labels like "grammar" or "verb tense". This line is silent tracking only — it is never spoken aloud.`;
 
   const history = [];
   let collectedErrors = [];
@@ -123,11 +123,11 @@ A JSON array of any verb-pattern mistakes found in the student's LAST message (e
 
 ${transcript}
 
-Verb-pattern mistakes tracked during the call: ${JSON.stringify(collectedErrors)}
+Grammar mistakes tracked during the call: ${JSON.stringify(collectedErrors)}
 
 Now output ONLY a valid JSON object (no markdown, no code fences) with this exact shape:
 {"errors": [{"wrong": "...", "correct": "...", "rule": "...", "explanation_it": "..."}], "level": "beginner" | "intermediate" | "advanced", "strengths": ["..."], "score": <number 0-10>, "encouragement": "..."}
-Pick the 3-5 most useful errors (deduplicate). "strengths" can be in Italian. "encouragement" should sound like Zoe: warm and casual, mostly English.`;
+Pick the 3-5 most useful errors (deduplicate similar ones). "rule" must be a short, precise grammar rule name exactly as a teacher would write it on a test (e.g. "Present Perfect con for/since", "Second Conditional", "Comparativo di maggioranza") — never vague. "explanation_it" must clearly restate the rule in Italian so the student understands WHY, not just what the correction is. "strengths" can be in Italian. "encouragement" should sound like Zoe: warm and casual, mostly English.`;
 
     try {
       const raw = await callClaude([{ role: 'user', content: prompt }], 1200);

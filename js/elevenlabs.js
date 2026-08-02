@@ -29,7 +29,7 @@ const ZoeTTS = (() => {
             similarity_boost: 0.8,
             style: 0.6,
             use_speaker_boost: true,
-            speed: 0.7,
+            speed: 1.05,
           },
         }),
         signal: controller.signal,
@@ -88,7 +88,7 @@ const ZoeTTS = (() => {
     currentUtterance = new SpeechSynthesisUtterance(text);
     currentUtterance.lang = 'en-GB';
     currentUtterance.pitch = 1.15;
-    currentUtterance.rate = 0.7;
+    currentUtterance.rate = 1.0;
 
     const voices = speechSynthesis.getVoices();
     const britishVoice = voices.find((v) => v.lang === 'en-GB' && /female|woman/i.test(v.name))
@@ -114,7 +114,7 @@ const ZoeTTS = (() => {
     // Chrome a volte non emette mai 'onend' per SpeechSynthesisUtterance (bug noto):
     // senza questo timeout la chiamata resterebbe bloccata per sempre in stato "speaking".
     const words = text.split(' ').length;
-    const safetyTimer = setTimeout(finish, Math.min(13000, Math.max(2200, words * 520)));
+    const safetyTimer = setTimeout(finish, Math.min(10000, Math.max(1800, words * 380)));
     cancelWebSpeechSafety = () => { settled = true; clearTimeout(safetyTimer); cancelWebSpeechSafety = null; };
 
     speechSynthesis.speak(currentUtterance);

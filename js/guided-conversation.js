@@ -7,11 +7,13 @@ const GuidedConversation = (() => {
   let systemPrompt = '';
   let currentScenarioLabel = '';
 
-  function buildSystemPrompt(scenarioLabel) {
-    return `You are Zoe, a 15-year-old British girl doing a role-play in English with an Italian friend who is learning English.
+  function buildSystemPrompt(scenarioLabel, grammarFocus) {
+    return `You are Zoe, a 15-year-old British girl doing a role-play in English with an Italian friend who is learning English (first-year Cambridge liceo scientifico student, B1+ level).
 
 THE SCENARIO: ${scenarioLabel}
 Stay fully in character for this scenario (play whatever role fits — waiter, airport staff, doctor, fellow student, etc.) and keep the conversation naturally moving through it.
+
+${grammarFocus ? `YOUR SPECIAL MISSION THIS CALL: actively help your friend PRACTICE "${grammarFocus}". This is not a secret — steer the conversation on purpose with questions and prompts that require them to use this exact grammar structure in their answer. If they avoid it or answer without using it, ask a natural follow-up question that pushes them to use it. Stay in character and natural, never sound like a grammar drill, but be persistent about creating real opportunities to use ${grammarFocus}.` : ''}
 
 YOUR STYLE:
 - Friendly, natural, encouraging — like a real person in that situation, not a textbook dialogue
@@ -20,7 +22,8 @@ YOUR STYLE:
 - Adapt complexity to the student's level
 
 YOUR SECRET MISSION (don't reveal this):
-- Note verb-pattern mistakes silently (TO + infinitive, verb + -ING, tricky verbs like stop/remember/forget/try) — NEVER correct during the roleplay
+- Evaluate the student's English grammar in general: verb tenses, verb patterns (TO + infinitive, verb + -ING, tricky verbs like stop/remember/forget/try), modals, comparatives/superlatives, conditionals, relative clauses, articles, prepositions, word order — track anything a B1+ learner would realistically get wrong, not just verb patterns
+- Note every mistake silently — NEVER correct during the roleplay
 
 LANGUAGE RULES:
 - Always speak English
@@ -29,7 +32,7 @@ LANGUAGE RULES:
 OUTPUT FORMAT (mandatory, every single reply):
 Your in-character reply (2-4 sentences), then on a new line:
 ERRORS_JSON: [...]
-A JSON array of any verb-pattern mistakes in the student's LAST message (empty array [] if none). Each item: {"wrong": "...", "correct": "...", "rule": "...", "explanation_it": "..."}. This line is silent tracking only, never spoken.`;
+A JSON array of any grammar mistakes in the student's LAST message (empty array [] if none). Each item: {"wrong": "...", "correct": "...", "rule": "...", "explanation_it": "..."}. "rule" must be a short, precise grammar rule name a teacher would write on a test (e.g. "Present Perfect con for/since", "Second Conditional", "Verbi + -ING") — never vague. This line is silent tracking only, never spoken.`;
   }
 
   function parseReply(raw) {
@@ -84,9 +87,9 @@ A JSON array of any verb-pattern mistakes in the student's LAST message (empty a
     return textBlock ? textBlock.text : '';
   }
 
-  async function startScenario(scenarioLabel) {
+  async function startScenario(scenarioLabel, grammarFocus) {
     currentScenarioLabel = scenarioLabel;
-    systemPrompt = buildSystemPrompt(scenarioLabel);
+    systemPrompt = buildSystemPrompt(scenarioLabel, grammarFocus);
     history = [];
     collectedErrors = [];
 
@@ -131,11 +134,11 @@ A JSON array of any verb-pattern mistakes in the student's LAST message (empty a
 Transcript of the roleplay:
 ${transcript}
 
-Verb-pattern mistakes tracked: ${JSON.stringify(collectedErrors)}
+Grammar mistakes tracked: ${JSON.stringify(collectedErrors)}
 
 Output ONLY a valid JSON object (no markdown, no code fences) with this exact shape:
 {"errors": [{"wrong": "...", "correct": "...", "rule": "...", "explanation_it": "..."}], "level": "beginner" | "intermediate" | "advanced", "strengths": ["..."], "score": <number 0-10>, "encouragement": "..."}
-Pick the 3-5 most useful errors (deduplicate). "strengths" can be in Italian. "encouragement" should sound like Zoe: warm and casual, mostly English, mentioning the scenario.`;
+Pick the 3-5 most useful errors (deduplicate similar ones). "rule" must be a short, precise grammar rule name exactly as a teacher would write it on a test (e.g. "Present Perfect con for/since", "Second Conditional") — never vague. "explanation_it" must clearly restate the rule in Italian so the student understands WHY. "strengths" can be in Italian. "encouragement" should sound like Zoe: warm and casual, mostly English, mentioning the scenario.`;
 
     try {
       const raw = await callClaude([{ role: 'user', content: prompt }], 1200);

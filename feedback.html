@@ -103,17 +103,21 @@
   .fb-error-card:last-child { margin-bottom: 0; }
 
   .fb-wrong { color: #f87171; }
-  .fb-correct { color: var(--accent-green); }
+  .fb-correct { color: var(--accent-green); margin-top: 0.25rem; }
   .fb-rule {
     display: inline-block;
-    margin-top: 0.3rem;
-    font-size: 0.72rem;
-    color: var(--accent-blue);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    margin-bottom: 0.6rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    font-family: var(--font-heading);
+    font-size: 0.76rem;
+    color: #1a1233;
   }
   .fb-explanation {
-    margin-top: 0.35rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--surface);
     color: var(--text-dim);
     font-size: 0.85rem;
   }
@@ -243,9 +247,9 @@
       const card = document.createElement('div');
       card.className = 'fb-error-card';
       card.innerHTML = `
+        ${e.rule ? `<div class="fb-rule">📌 ${e.rule}</div>` : ''}
         <div class="fb-wrong">❌ ${e.wrong}</div>
         <div class="fb-correct">✅ ${e.correct}</div>
-        ${e.rule ? `<div class="fb-rule">${e.rule}</div>` : ''}
         ${e.explanation_it ? `<div class="fb-explanation">💡 ${e.explanation_it}</div>` : ''}
       `;
       div.appendChild(card);

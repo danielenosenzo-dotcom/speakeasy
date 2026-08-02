@@ -71,7 +71,7 @@
 
 <div class="screen call-screen">
   <div class="call-timer-section">
-    <div class="call-timer" id="call-timer">5:00</div>
+    <div class="call-timer" id="call-timer">8:00</div>
     <div class="call-progress-track">
       <div class="call-progress-fill" id="call-progress-fill"></div>
     </div>
@@ -177,7 +177,11 @@
         }
       });
 
-      VoiceInput.startListening();
+      // Piccola pausa prima di attivare il microfono: evita che catturi la coda
+      // dell'audio di Zoe appena finito di parlare (causa di tagli/sovrapposizioni).
+      setTimeout(() => {
+        if (sessionActive) VoiceInput.startListening();
+      }, 400);
     });
   }
 

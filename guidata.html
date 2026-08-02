@@ -176,7 +176,13 @@
     <span class="gd-title">🗣️ Conversazione Guidata</span>
   </div>
 
+  <div class="gd-tabs" id="gd-tabs">
+    <button class="gd-tab active" id="gd-tab-real" type="button">Situazioni reali</button>
+    <button class="gd-tab" id="gd-tab-grammar" type="button">Pratica grammaticale</button>
+  </div>
+
   <div class="gd-scenarios" id="gd-scenarios"></div>
+  <div class="gd-scenarios" id="gd-grammar-scenarios" style="display:none;"></div>
 </div>
 
 <div class="screen gd-screen" id="prepare-screen" style="display:none;">
@@ -196,7 +202,7 @@
 
 <div class="screen call-screen gd-call-screen" id="gd-call-screen">
   <div class="call-timer-section">
-    <div class="call-timer" id="call-timer">5:00</div>
+    <div class="call-timer" id="call-timer">8:00</div>
     <div class="call-progress-track">
       <div class="call-progress-fill" id="call-progress-fill"></div>
     </div>
@@ -364,7 +370,9 @@
         }
       });
 
-      VoiceInput.startListening();
+      setTimeout(() => {
+        if (sessionActive) VoiceInput.startListening();
+      }, 400);
     });
   }
 

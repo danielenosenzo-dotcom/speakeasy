@@ -1,5 +1,5 @@
 const VoiceInput = (() => {
-  const SILENCE_MS = 2500;
+  const SILENCE_MS = 3500;
   const CONFIDENCE_THRESHOLD = 0.3;
 
   const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;

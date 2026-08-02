@@ -1,5 +1,5 @@
 const ZoeSession = (() => {
-  const DURATION_SEC = 5 * 60;
+  const DURATION_SEC = 8 * 60;
   let remaining = DURATION_SEC;
   let timerId = null;
   let tickCb = null;
