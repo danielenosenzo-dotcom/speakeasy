@@ -55,6 +55,87 @@
     gap: 0.8rem;
   }
 
+  .ex-tabs {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    gap: 0.5rem;
+    background: var(--surface);
+    padding: 0.3rem;
+    border-radius: var(--radius-full);
+  }
+
+  .ex-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: var(--radius-full);
+  }
+
+  .ex-tab.active {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    color: #1a1233;
+  }
+
+  .verifica-card { border-left-color: #f87171 !important; }
+
+  .cloze-text {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.2rem;
+    font-size: 0.95rem;
+    line-height: 2.1;
+  }
+
+  .cloze-blank-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin: 0 0.1rem;
+  }
+
+  .cloze-num {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    vertical-align: super;
+  }
+
+  .cloze-input {
+    width: 90px;
+    background: var(--surface-2);
+    border: 2px solid var(--surface-2);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.4rem;
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+    text-align: center;
+  }
+
+  .cloze-input.correct { border-color: var(--accent-green); }
+  .cloze-input.wrong { border-color: #f87171; }
+
+  .cloze-base-verb {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .cloze-results {
+    margin-top: 1rem;
+  }
+  .cloze-result-item {
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+  }
+
   .unit-subtitle {
     font-size: 0.76rem;
     color: var(--text-dim);
@@ -151,6 +232,16 @@
     padding: 1rem 1.2rem;
     color: var(--text-dim);
     font-size: 0.9rem;
+  }
+
+  .fb-rule {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    font-family: var(--font-heading);
+    font-size: 0.76rem;
+    color: #1a1233;
   }
 
   .ex-quiz {
@@ -262,8 +353,14 @@
     <span class="ex-title">✏️ Esercizi Pratici</span>
   </div>
 
+  <div class="ex-tabs" id="ex-tabs">
+    <button class="ex-tab active" id="ex-tab-topic" type="button">Per argomento</button>
+    <button class="ex-tab" id="ex-tab-verifica" type="button">📝 Modalità Verifica</button>
+  </div>
+
   <div class="ex-units" id="ex-units"></div>
   <div class="ex-topics" id="ex-topics" style="display:none;"></div>
+  <div class="ex-units" id="ex-verifica-menu" style="display:none;"></div>
 
   <div id="ex-content"></div>
 </div>
@@ -275,7 +372,7 @@
 <script src="js/storage.js"></script>
 <script src="js/ai-content.js"></script>
 <script>
-  const SYSTEM_PROMPT = `Stai creando esercizi di grammatica inglese per una ragazza italiana di 15 anni che studia i Verb Patterns (liceo scientifico Cambridge).
+  const SYSTEM_PROMPT = `Stai creando esercizi di grammatica inglese per una ragazza italiana di 15 anni al liceo scientifico Cambridge, livello B1+.
 
 Genera ESATTAMENTE 5 esercizi sull'argomento richiesto. Rispondi SOLO con un array JSON valido (niente markdown, niente code fence) con questa forma:
 [
@@ -284,6 +381,7 @@ Genera ESATTAMENTE 5 esercizi sull'argomento richiesto. Rispondi SOLO con un arr
     "question": "...",
     "options": ["...", "...", "..."],
     "correctAnswer": "...",
+    "rule": "...",
     "explanation_it": "..."
   }
 ]
@@ -292,7 +390,24 @@ Regole:
 - "type" è "multiple_choice" (3-4 "options", "correctAnswer" deve combaciare esattamente il testo di una option) oppure "fill_blank" (la domanda contiene uno spazio da riempire indicato con ___, "correctAnswer" è la parola/frase esatta attesa, minuscola, senza punteggiatura, niente "options")
 - Mix di entrambi i tipi tra i 5 esercizi
 - Varia i verbi usati, non ripetere sempre lo stesso esempio
+- "rule" è il nome preciso della regola grammaticale coinvolta (es. "Present Perfect con for/since")
 - "explanation_it" in italiano, breve, chiara, non condiscendente`;
+
+  const VERIFICA_SYSTEM_PROMPT = `Stai creando una verifica di grammatica inglese difficile per una studentessa di 15 anni al primo anno di liceo scientifico Cambridge, livello B1+. Genera ESATTAMENTE 20 esercizi che mischiano tempi verbali diversi, modali, comparativi, condizionali, relative clauses, verb patterns, in ordine casuale e senza ripetere sempre lo stesso punto grammaticale.
+
+Rispondi SOLO con un array JSON valido (niente markdown) con questa forma:
+[{"type":"multiple_choice","question":"...","options":["...","...","...","..."],"correctAnswer":"...","rule":"...","explanation_it":"..."}]
+
+- "type" è "multiple_choice" (4 "options", distrattori plausibili non ovvi) oppure "fill_blank" (spazio indicato con ___, "correctAnswer" minuscolo senza punteggiatura)
+- Difficoltà alta come una vera verifica scolastica, non esercizi banali
+- "rule" è il nome preciso della regola coinvolta in ciascuna domanda
+- "explanation_it" in italiano, chiara`;
+
+  const CLOZE_SYSTEM_PROMPT = `Stai creando un testo per una verifica di inglese in stile cloze (completamento) per una studentessa di 15 anni al liceo scientifico Cambridge, livello B1+, sullo stile delle verifiche scolastiche reali. Scrivi un racconto di 10-14 frasi con circa 16-18 spazi vuoti, ciascuno segnato con un numero tra parentesi quadre tipo [1], dove lo studente deve scrivere la forma corretta del verbo indicato tra parentesi tonde subito dopo. Mischia tempi diversi (presente, passato, futuro, perfetto, condizionale) e qualche modale.
+
+Rispondi SOLO con un oggetto JSON valido (niente markdown): {"text": "... testo con [1] (go) ... [2] (see) ...", "blanks": [{"number":1,"baseVerb":"go","correctAnswer":"...","rule":"..."}]}
+
+Il campo "text" deve contenere il numero tra parentesi quadre E il verbo base tra parentesi tonde inline nel testo, così lo studente sa quale verbo coniugare. "correctAnswer" minuscolo, senza punteggiatura. "rule" è il nome preciso della regola coinvolta per quello spazio.`;
 
   const UNITS = [
     { id: 'u1', title: 'Unit 1', subtitle: 'Appearance, personality and relationships', emoji: '🧑', topics: [
@@ -368,6 +483,7 @@ Regole:
   let currentIndex = 0;
   let score = 0;
   let currentTopic = '';
+  let currentMode = 'topic';
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -381,8 +497,10 @@ Regole:
 
   async function loadExercises(topic) {
     currentTopic = topic;
+    currentMode = 'topic';
     unitsEl.style.display = 'none';
     topicsEl.style.display = 'none';
+    document.getElementById('ex-verifica-menu').style.display = 'none';
     contentEl.innerHTML = `
       <div class="ex-state">
         <span>✏️ Zoe sta preparando gli esercizi...</span>
@@ -406,6 +524,139 @@ Regole:
       `;
       document.getElementById('retry-btn').addEventListener('click', () => loadExercises(topic));
     }
+  }
+
+  async function loadVerifica20() {
+    currentTopic = 'Verifica mista (20 domande)';
+    currentMode = 'verifica20';
+    unitsEl.style.display = 'none';
+    topicsEl.style.display = 'none';
+    document.getElementById('ex-verifica-menu').style.display = 'none';
+    contentEl.innerHTML = `
+      <div class="ex-state">
+        <span>📝 Zoe sta preparando la verifica (20 domande, ci vuole un po')...</span>
+        <div class="ex-loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    `;
+
+    try {
+      const data = await AIContent.askJSON('Genera la verifica mista di 20 domande.', VERIFICA_SYSTEM_PROMPT, 6000);
+      quiz = Array.isArray(data) ? data : [];
+      if (quiz.length === 0) throw new Error('Nessun esercizio generato — riprova.');
+      currentIndex = 0;
+      score = 0;
+      renderQuestion();
+    } catch (err) {
+      contentEl.innerHTML = `
+        <div class="ex-error ex-fade-in">
+          😕 ${escapeHtml(err.message)}
+          <div class="ex-actions"><button class="btn-secondary" id="retry-btn" style="margin-top:0.8rem">Riprova</button></div>
+        </div>
+      `;
+      document.getElementById('retry-btn').addEventListener('click', loadVerifica20);
+    }
+  }
+
+  let clozeData = null;
+
+  async function loadCloze() {
+    currentMode = 'cloze';
+    unitsEl.style.display = 'none';
+    topicsEl.style.display = 'none';
+    document.getElementById('ex-verifica-menu').style.display = 'none';
+    contentEl.innerHTML = `
+      <div class="ex-state">
+        <span>📝 Zoe sta scrivendo il testo da completare...</span>
+        <div class="ex-loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    `;
+
+    try {
+      const data = await AIContent.askJSON('Genera il testo cloze.', CLOZE_SYSTEM_PROMPT, 3000);
+      if (!data || !data.text || !Array.isArray(data.blanks) || data.blanks.length === 0) {
+        throw new Error('Testo non generato correttamente — riprova.');
+      }
+      clozeData = data;
+      renderCloze();
+    } catch (err) {
+      contentEl.innerHTML = `
+        <div class="ex-error ex-fade-in">
+          😕 ${escapeHtml(err.message)}
+          <div class="ex-actions"><button class="btn-secondary" id="retry-btn" style="margin-top:0.8rem">Riprova</button></div>
+        </div>
+      `;
+      document.getElementById('retry-btn').addEventListener('click', loadCloze);
+    }
+  }
+
+  function renderCloze() {
+    let html = escapeHtml(clozeData.text);
+    clozeData.blanks.forEach((b) => {
+      const marker = `[${b.number}]`;
+      const replacement = `<span class="cloze-blank-wrap"><input type="text" class="cloze-input" data-num="${b.number}" size="8"></span>`;
+      html = html.replace(marker, replacement);
+    });
+
+    contentEl.innerHTML = `
+      <div class="ex-fade-in">
+        <div class="cloze-text">${html}</div>
+        <div class="ex-actions" style="margin-top:1rem;">
+          <button class="btn-primary" id="cloze-check-btn">Correggi tutto</button>
+        </div>
+        <div class="cloze-results" id="cloze-results"></div>
+      </div>
+    `;
+
+    document.getElementById('cloze-check-btn').addEventListener('click', checkCloze);
+  }
+
+  function checkCloze() {
+    let correctCount = 0;
+    const results = [];
+
+    clozeData.blanks.forEach((b) => {
+      const input = contentEl.querySelector(`.cloze-input[data-num="${b.number}"]`);
+      const given = input ? input.value : '';
+      const isCorrect = normalize(given) === normalize(b.correctAnswer);
+      if (isCorrect) correctCount++;
+      if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
+      results.push({ ...b, given, isCorrect });
+    });
+
+    score = correctCount;
+    quiz = { length: clozeData.blanks.length };
+    currentTopic = 'Testo da completare';
+
+    const resultsEl = document.getElementById('cloze-results');
+    resultsEl.innerHTML = results.map((r) => `
+      <div class="cloze-result-item">
+        <div class="${r.isCorrect ? 'ex-wrong' : 'fb-wrong'}" style="color:${r.isCorrect ? 'var(--accent-green)' : '#f87171'}">
+          [${r.number}] ${r.isCorrect ? '✅' : '❌'} ${escapeHtml(r.correctAnswer)}
+          ${!r.isCorrect ? ` <span style="color:var(--text-dim)">(hai scritto: "${escapeHtml(r.given || '—')}")</span>` : ''}
+        </div>
+        ${r.rule ? `<div style="color:var(--accent-blue);font-size:0.78rem;margin-top:0.2rem;">📌 ${escapeHtml(r.rule)}</div>` : ''}
+      </div>
+    `).join('') + `
+      <div class="ex-final" style="margin-top:1rem;">
+        <div class="ex-final-score">${correctCount}/${clozeData.blanks.length}</div>
+        <div class="ex-actions" style="margin-top:1rem;">
+          <button class="btn-primary" id="retry-topic-btn">Rifai un nuovo testo</button>
+        </div>
+        <div class="ex-actions" style="margin-top:0.6rem;">
+          <button class="btn-secondary" id="another-topic-btn">Torna al menu</button>
+        </div>
+      </div>
+    `;
+
+    SpeakEasyStorage.saveEserciziRisultato({ topic: 'Testo da completare (cloze)', score: correctCount, total: clozeData.blanks.length });
+
+    document.getElementById('cloze-check-btn').disabled = true;
+    document.getElementById('retry-topic-btn').addEventListener('click', loadCloze);
+    document.getElementById('another-topic-btn').addEventListener('click', () => {
+      renderVerificaMenu();
+      switchTab('verifica');
+      contentEl.innerHTML = '';
+    });
   }
 
   function renderQuestion() {
@@ -469,6 +720,7 @@ Regole:
     const feedbackArea = document.getElementById('ex-feedback-area');
     feedbackArea.innerHTML = `
       <div class="ex-feedback ${isCorrect ? 'ok' : 'no'}">
+        ${q.rule ? `<div class="fb-rule" style="margin-bottom:0.5rem;">📌 ${escapeHtml(q.rule)}</div>` : ''}
         ${isCorrect ? '✅ Giusto!' : '❌ Risposta corretta: ' + escapeHtml(q.correctAnswer)}
         <div class="explain">💡 ${escapeHtml(q.explanation_it)}</div>
       </div>
@@ -490,26 +742,77 @@ Regole:
       : pct >= 50 ? 'Buon lavoro, ma ripassa ancora un po\' 💪'
       : 'Vale la pena rivedere le regole grammaticali su questo tema 📖';
 
+    const retryLabel = currentMode === 'verifica20' ? 'Rifai la verifica' : 'Rifai questo argomento';
+    const backLabel = currentMode === 'verifica20' ? 'Torna al menu' : 'Un altro argomento';
+
     contentEl.innerHTML = `
       <div class="ex-final ex-fade-in">
         <div class="ex-final-score">${score}/${quiz.length}</div>
         <p style="color:var(--text-dim);font-size:0.9rem;">${msg}</p>
         <div class="ex-actions" style="margin-top:1.2rem;">
-          <button class="btn-primary" id="retry-topic-btn">Rifai questo argomento</button>
+          <button class="btn-primary" id="retry-topic-btn">${retryLabel}</button>
         </div>
         <div class="ex-actions" style="margin-top:0.6rem;">
-          <button class="btn-secondary" id="another-topic-btn">Un altro argomento</button>
+          <button class="btn-secondary" id="another-topic-btn">${backLabel}</button>
         </div>
       </div>
     `;
-    document.getElementById('retry-topic-btn').addEventListener('click', () => loadExercises(currentTopic));
+    document.getElementById('retry-topic-btn').addEventListener('click', () => {
+      if (currentMode === 'verifica20') loadVerifica20();
+      else loadExercises(currentTopic);
+    });
     document.getElementById('another-topic-btn').addEventListener('click', () => {
-      renderUnits();
+      if (currentMode === 'verifica20') {
+        renderVerificaMenu();
+        switchTab('verifica');
+      } else {
+        renderUnits();
+        switchTab('topic');
+      }
       contentEl.innerHTML = '';
     });
   }
 
+  function renderVerificaMenu() {
+    const el = document.getElementById('ex-verifica-menu');
+    el.innerHTML = `
+      <button class="topic-card verifica-card" id="verifica-20-btn">
+        <span class="topic-icon">🎯</span>
+        <span><span class="topic-title">Verifica mista — 20 domande</span><br><span class="unit-subtitle">Tempi, modali, comparativi e altro mischiati, difficoltà alta</span></span>
+      </button>
+      <button class="topic-card verifica-card" id="verifica-cloze-btn">
+        <span class="topic-icon">📄</span>
+        <span><span class="topic-title">Testo da completare</span><br><span class="unit-subtitle">Racconto con verbi da coniugare, come le verifiche di classe</span></span>
+      </button>
+    `;
+    document.getElementById('verifica-20-btn').addEventListener('click', loadVerifica20);
+    document.getElementById('verifica-cloze-btn').addEventListener('click', loadCloze);
+  }
+
+  function switchTab(tab) {
+    const tabTopic = document.getElementById('ex-tab-topic');
+    const tabVerifica = document.getElementById('ex-tab-verifica');
+    const verificaMenu = document.getElementById('ex-verifica-menu');
+    if (tab === 'verifica') {
+      tabVerifica.classList.add('active');
+      tabTopic.classList.remove('active');
+      verificaMenu.style.display = 'flex';
+      unitsEl.style.display = 'none';
+      topicsEl.style.display = 'none';
+    } else {
+      tabTopic.classList.add('active');
+      tabVerifica.classList.remove('active');
+      unitsEl.style.display = 'flex';
+      topicsEl.style.display = 'none';
+      verificaMenu.style.display = 'none';
+    }
+  }
+
+  document.getElementById('ex-tab-topic').addEventListener('click', () => switchTab('topic'));
+  document.getElementById('ex-tab-verifica').addEventListener('click', () => switchTab('verifica'));
+
   renderUnits();
+  renderVerificaMenu();
 </script>
 
 </body>
