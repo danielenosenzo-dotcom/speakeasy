@@ -53,6 +53,34 @@
     gap: 0.8rem;
   }
 
+  .gd-tabs {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    gap: 0.5rem;
+    background: var(--surface);
+    padding: 0.3rem;
+    border-radius: var(--radius-full);
+  }
+
+  .gd-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: var(--radius-full);
+  }
+
+  .gd-tab.active {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    color: #1a1233;
+  }
+
+  .grammar-scenario-card { border-left-color: var(--accent-green) !important; }
+
   .scenario-card {
     display: flex;
     align-items: center;
@@ -80,10 +108,16 @@
     animation: gd-drop 0.4s ease forwards;
     transition: transform 0.15s ease;
   }
-  #gd-scenarios .scenario-card:nth-child(1) { animation-delay: 0.05s; }
-  #gd-scenarios .scenario-card:nth-child(2) { animation-delay: 0.12s; }
-  #gd-scenarios .scenario-card:nth-child(3) { animation-delay: 0.19s; }
-  #gd-scenarios .scenario-card:nth-child(4) { animation-delay: 0.26s; }
+  #gd-scenarios .scenario-card:nth-child(1), #gd-grammar-scenarios .scenario-card:nth-child(1) { animation-delay: 0.05s; }
+  #gd-scenarios .scenario-card:nth-child(2), #gd-grammar-scenarios .scenario-card:nth-child(2) { animation-delay: 0.12s; }
+  #gd-scenarios .scenario-card:nth-child(3), #gd-grammar-scenarios .scenario-card:nth-child(3) { animation-delay: 0.19s; }
+  #gd-scenarios .scenario-card:nth-child(4), #gd-grammar-scenarios .scenario-card:nth-child(4) { animation-delay: 0.26s; }
+  #gd-grammar-scenarios .scenario-card:nth-child(5) { animation-delay: 0.33s; }
+  #gd-grammar-scenarios .scenario-card:nth-child(6) { animation-delay: 0.40s; }
+  #gd-grammar-scenarios .scenario-card:nth-child(7) { animation-delay: 0.47s; }
+  #gd-grammar-scenarios .scenario-card:nth-child(8) { animation-delay: 0.54s; }
+  #gd-grammar-scenarios .scenario-card:nth-child(9) { animation-delay: 0.61s; }
+  #gd-grammar-scenarios .scenario-card:nth-child(10) { animation-delay: 0.68s; }
   @keyframes gd-drop {
     to { opacity: 1; transform: translateY(0); }
   }
@@ -261,6 +295,76 @@
     ]},
   ];
 
+  const GRAMMAR_SCENARIOS = [
+    { id: 'gp-presperf', emoji: '🏠', title: 'Il nuovo vicino di casa', desc: 'Present Perfect con for/since', grammarFocus: 'Present Perfect con for/since',
+      label: "Zoe is meeting you for the first time as your new neighbour. She's curious and keeps asking how long you've lived in your town, how long you've known your friends, how long you've played your instrument/sport/hobby.",
+      phrases: [
+        { en: "I've lived here for five years.", it: 'Vivo qui da cinque anni.' },
+        { en: "I've known her since primary school.", it: 'La conosco fin dalle elementari.' },
+        { en: "I've played the guitar for two years.", it: 'Suono la chitarra da due anni.' },
+      ]},
+    { id: 'gp-usedto', emoji: '👵', title: 'Intervista alla nonna', desc: 'Used to / Would', grammarFocus: 'Used to / Would per abitudini passate',
+      label: 'Zoe plays your grandmother, reminiscing about how life was different when she was young, and asking you what you used to do as a small child.',
+      phrases: [
+        { en: "I used to be scared of the dark.", it: 'Avevo paura del buio.' },
+        { en: "We would play outside every day.", it: 'Giocavamo fuori ogni giorno.' },
+        { en: "I didn't use to like vegetables.", it: 'Non mi piacevano le verdure.' },
+      ]},
+    { id: 'gp-patterns', emoji: '🎮', title: 'Hobby e progetti', desc: 'Verbi + TO / Verbi + -ING', grammarFocus: 'Verbi + TO / Verbi + -ING',
+      label: "Zoe wants to know all about your hobbies and plans: what you enjoy doing, what you want to do this summer, what you've decided to try, what you avoid doing.",
+      phrases: [
+        { en: "I enjoy playing video games.", it: 'Mi piace giocare ai videogiochi.' },
+        { en: "I want to travel to Japan.", it: 'Voglio viaggiare in Giappone.' },
+        { en: "I've decided to learn Spanish.", it: 'Ho deciso di imparare lo spagnolo.' },
+      ]},
+    { id: 'gp-deduction', emoji: '🔍', title: 'La stanza misteriosa', desc: 'Modali di deduzione', grammarFocus: 'Modali di deduzione (must/might/could/can\'t)',
+      label: "You and Zoe are looking at a strange, messy mystery room together and trying to guess what happened there. Make guesses using must/might/could/can't and encourage her to guess too.",
+      phrases: [
+        { en: "It must have been a party.", it: 'Dev\'essere stata una festa.' },
+        { en: "Someone might have forgotten their bag.", it: 'Qualcuno potrebbe aver dimenticato la borsa.' },
+        { en: "It can't be his room, it's too tidy.", it: 'Non può essere la sua stanza, è troppo in ordine.' },
+      ]},
+    { id: 'gp-future', emoji: '🗺️', title: 'Organizziamo un viaggio', desc: 'Forme del futuro', grammarFocus: 'Forme del futuro (will, going to, present continuous)',
+      label: 'You and Zoe are planning a trip or a party together. She asks about your plans, your intentions, and makes predictions and spontaneous decisions.',
+      phrases: [
+        { en: "I'm going to book the flights tomorrow.", it: 'Prenoterò i voli domani.' },
+        { en: "I'm meeting my cousin at the airport.", it: 'Incontro mio cugino in aeroporto.' },
+        { en: "I think it will rain that day.", it: 'Penso che pioverà quel giorno.' },
+      ]},
+    { id: 'gp-relative', emoji: '✉️', title: "Amica di penna", desc: 'Relative clauses', grammarFocus: 'Relative clauses (who/which/that/where)',
+      label: "Zoe is your new pen pal and wants to know about the people, places and things in your life — your best friend, your favourite place, a memorable object.",
+      phrases: [
+        { en: "My best friend is someone who always makes me laugh.", it: 'La mia migliore amica è una persona che mi fa sempre ridere.' },
+        { en: "That's the park where I learned to ride a bike.", it: 'Quello è il parco dove ho imparato ad andare in bici.' },
+      ]},
+    { id: 'gp-obligation', emoji: '🏫', title: 'Le regole della scuola', desc: 'Modali di obbligo', grammarFocus: 'Modali di obbligo (must/have to/mustn\'t)',
+      label: 'Zoe is a new foreign exchange student at your school and asks you to explain the rules — what students must/have to do, what is not allowed, what is optional.',
+      phrases: [
+        { en: "You have to wear a uniform.", it: 'Devi indossare la divisa.' },
+        { en: "You mustn't use your phone in class.", it: 'Non devi usare il telefono in classe.' },
+        { en: "You don't have to bring lunch.", it: 'Non è necessario portare il pranzo.' },
+      ]},
+    { id: 'gp-comparative', emoji: '⚖️', title: 'Aiutami a scegliere', desc: 'Comparativi e superlativi', grammarFocus: 'Comparativi e superlativi',
+      label: "Zoe can't decide between two things (two cities to visit, two films, two phones) and asks for your opinion, pushing you to compare them.",
+      phrases: [
+        { en: "This one is more expensive than that one.", it: 'Questo è più costoso di quello.' },
+        { en: "It's the best film I've ever seen.", it: 'È il miglior film che abbia mai visto.' },
+        { en: "London is bigger than Turin.", it: 'Londra è più grande di Torino.' },
+      ]},
+    { id: 'gp-conditional', emoji: '🎲', title: 'Cosa faresti se...', desc: 'Second Conditional', grammarFocus: 'Second Conditional',
+      label: "Zoe plays a hypothetical 'what would you do if...' game with you, asking fun and silly hypothetical questions.",
+      phrases: [
+        { en: "If I won the lottery, I would travel the world.", it: 'Se vincessi la lotteria, viaggerei per il mondo.' },
+        { en: "What would you do if you could fly?", it: 'Cosa faresti se potessi volare?' },
+      ]},
+    { id: 'gp-pastcont', emoji: '⏱️', title: 'Cosa stavi facendo quando...', desc: 'Past Simple vs Continuous', grammarFocus: 'Past Simple vs Past Continuous',
+      label: 'Zoe asks about specific memorable moments in your past — where you were and what you were doing when something happened.',
+      phrases: [
+        { en: "I was watching TV when the power went out.", it: 'Stavo guardando la TV quando è andata via la luce.' },
+        { en: "While I was doing my homework, my phone rang.", it: 'Mentre facevo i compiti, ha squillato il telefono.' },
+      ]},
+  ];
+
   let currentScenario = null;
 
   function renderPhrases(container, phrases) {
@@ -281,12 +385,25 @@
       </button>
     `).join('');
     el.querySelectorAll('.scenario-card').forEach((btn) => {
-      btn.addEventListener('click', () => openPrepare(btn.dataset.id));
+      btn.addEventListener('click', () => openPrepare(btn.dataset.id, false));
     });
   }
 
-  function openPrepare(id) {
-    currentScenario = SCENARIOS.find((s) => s.id === id);
+  function renderGrammarScenarioList() {
+    const el = document.getElementById('gd-grammar-scenarios');
+    el.innerHTML = GRAMMAR_SCENARIOS.map((s) => `
+      <button class="scenario-card grammar-scenario-card" data-id="${s.id}">
+        <span class="scenario-icon">${s.emoji}</span>
+        <span><span class="scenario-title">${s.title}</span><br><span class="scenario-desc">${s.desc}</span></span>
+      </button>
+    `).join('');
+    el.querySelectorAll('.scenario-card').forEach((btn) => {
+      btn.addEventListener('click', () => openPrepare(btn.dataset.id, true));
+    });
+  }
+
+  function openPrepare(id, isGrammar) {
+    currentScenario = (isGrammar ? GRAMMAR_SCENARIOS : SCENARIOS).find((s) => s.id === id);
     document.getElementById('scenario-screen').style.display = 'none';
     document.getElementById('prepare-screen').style.display = 'flex';
     document.getElementById('prepare-title').textContent = currentScenario.emoji + ' ' + currentScenario.title;
@@ -298,6 +415,21 @@
     document.getElementById('prepare-screen').style.display = 'none';
     document.getElementById('scenario-screen').style.display = 'flex';
   });
+
+  document.getElementById('gd-tab-real').addEventListener('click', () => {
+    document.getElementById('gd-tab-real').classList.add('active');
+    document.getElementById('gd-tab-grammar').classList.remove('active');
+    document.getElementById('gd-scenarios').style.display = 'flex';
+    document.getElementById('gd-grammar-scenarios').style.display = 'none';
+  });
+  document.getElementById('gd-tab-grammar').addEventListener('click', () => {
+    document.getElementById('gd-tab-grammar').classList.add('active');
+    document.getElementById('gd-tab-real').classList.remove('active');
+    document.getElementById('gd-grammar-scenarios').style.display = 'flex';
+    document.getElementById('gd-scenarios').style.display = 'none';
+  });
+
+  renderGrammarScenarioList();
 
   renderScenarioList();
 </script>
@@ -442,7 +574,7 @@
     document.getElementById('phrase-toggle-btn').style.display = 'block';
     sessionActive = true;
     ZoeSession.start();
-    GuidedConversation.startScenario(currentScenario.label).then((line) => conversationLoop(line));
+    GuidedConversation.startScenario(currentScenario.label, currentScenario.grammarFocus).then((line) => conversationLoop(line));
   });
 
   const phraseDrawer = document.getElementById('phrase-drawer');
