@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="google" content="notranslate">
+<title>SpeakEasy — STEP VANNINI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f0a1e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/avatar.css">
+<link rel="stylesheet" href="css/call.css">
+<style>
+  html, body { overflow-y: auto; height: auto; }
+
+  .sv-screen {
+    min-height: 100vh;
+    height: auto;
+    justify-content: flex-start;
+    gap: 1.2rem;
+    padding: 1.5rem 1.4rem 3rem;
+  }
+
+  .sv-topbar {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .back-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 1.3rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sv-title { font-family: var(--font-heading); font-size: 1.2rem; }
+
+  .sv-intro {
+    width: 100%;
+    max-width: 480px;
+    background: linear-gradient(135deg, rgba(192,132,252,0.12), rgba(244,114,182,0.12));
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.2rem;
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .sv-intro b { color: var(--accent-purple); }
+
+  .sv-cards {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .sv-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface);
+    border: none;
+    border-left: 4px solid var(--card-accent, var(--accent-purple));
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.2rem;
+    min-height: 70px;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--font-body);
+  }
+  .sv-card:active { transform: scale(0.98); }
+  .sv-card-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .sv-card-title { font-family: var(--font-heading); font-size: 1rem; }
+  .sv-card-desc { font-size: 0.78rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+  /* Prepare screen (speaking) */
+  .sv-prepare {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    animation: sv-fade 0.35s ease forwards;
+  }
+  @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
+  .sv-prepare-title { font-family: var(--font-heading); font-size: 1.3rem; text-align: center; }
+  .phrase-panel { background: var(--surface); border-radius: var(--radius-lg); padding: 1.1rem 1.2rem; }
+  .phrase-panel h3 { font-family: var(--font-heading); font-size: 0.9rem; color: var(--accent-blue); margin-bottom: 0.7rem; }
+  .phrase-item { margin-bottom: 0.6rem; font-size: 0.86rem; }
+  .phrase-item:last-child { margin-bottom: 0; }
+  .phrase-item .en { color: var(--text); }
+  .phrase-item .it { color: var(--text-dim); font-size: 0.78rem; }
+
+  .sv-call-screen { display: none; }
+  .sv-call-screen.active { display: flex; }
+
+  .call-caption {
+    max-width: 320px;
+    text-align: center;
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.4;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 1rem;
+    margin-top: 0.4rem;
+  }
+
+  .phrase-toggle-btn {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    background: var(--surface-2);
+    border: 2px solid var(--accent-blue);
+    color: var(--text);
+    border-radius: var(--radius-full);
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    z-index: 15;
+  }
+
+  .phrase-drawer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 1.2rem 1.4rem 2rem;
+    max-height: 50vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    z-index: 25;
+  }
+  .phrase-drawer.open { transform: translateY(0); }
+
+  /* Written exercises (mirrors esercizi.html "Verifica reale") */
+  .sv-state {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    color: var(--text-dim);
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+  }
+  .sv-loading-dots { display: flex; gap: 5px; }
+  .sv-loading-dots span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-purple);
+    animation: sv-bounce 1.2s ease-in-out infinite;
+  }
+  .sv-loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .sv-loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes sv-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  .sv-error {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border-left: 4px solid #f87171;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .sv-quiz { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 1rem; }
+
+  .sv-test-header { width: 100%; display: flex; flex-direction: column; gap: 0.1rem; margin-bottom: -0.2rem; }
+
+  .sv-section {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .sv-section-title { font-family: var(--font-heading); font-size: 0.95rem; }
+  .sv-instructions { font-size: 0.82rem; color: var(--text-dim); margin-top: -0.4rem; }
+
+  .word-bank { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .word-chip { background: var(--surface-2); color: var(--accent-blue); border-radius: var(--radius-full); padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+  .match-list {
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 0.9rem;
+    font-size: 0.82rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .sv-item { display: flex; gap: 0.5rem; padding-top: 0.6rem; border-top: 1px solid var(--surface-2); }
+  .sv-item:first-of-type { border-top: none; padding-top: 0; }
+  .sv-item-num { font-family: var(--font-heading); color: var(--text-dim); font-size: 0.85rem; flex-shrink: 0; }
+  .sv-item-body { flex: 1; font-size: 0.92rem; line-height: 1.6; }
+  .sv-item-q { margin-bottom: 0.5rem; }
+
+  .sv-radio {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: var(--surface-2); border: 2px solid transparent;
+    border-radius: var(--radius-md); padding: 0.55rem 0.8rem;
+    margin-bottom: 0.4rem; font-size: 0.88rem;
+  }
+  .sv-radio.correct { border-color: var(--accent-green); background: rgba(74,222,128,0.12); }
+  .sv-radio.wrong { border-color: #f87171; background: rgba(248,113,113,0.12); }
+
+  .sv-inline-input, .sv-inline-select {
+    background: var(--surface-2); border: 2px solid var(--surface-2); color: var(--text);
+    border-radius: var(--radius-sm); padding: 0.3rem 0.5rem; font-size: 0.9rem; font-family: var(--font-body);
+  }
+  .sv-inline-input { width: 130px; text-align: center; }
+  .sv-inline-input.correct, .sv-inline-select.correct { border-color: var(--accent-green); }
+  .sv-inline-input.wrong, .sv-inline-select.wrong { border-color: #f87171; }
+
+  .sv-trans-original { color: var(--text-dim); margin-bottom: 0.4rem; }
+  .sv-trans-keyword { color: var(--accent-purple); font-weight: 700; }
+  .sv-trans-input { width: 100%; box-sizing: border-box; text-align: left; }
+
+  .sv-item-hint { margin-top: 0.4rem; font-size: 0.8rem; color: var(--accent-green); }
+  .sv-section-score { align-self: flex-end; font-family: var(--font-heading); font-size: 0.85rem; color: var(--text-dim); }
+
+  .sv-actions { display: flex; justify-content: center; gap: 0.6rem; padding-top: 0.4rem; }
+  .sv-final { text-align: center; background: var(--surface); border-radius: var(--radius-lg); padding: 2rem 1.4rem; }
+  .sv-final-score { font-family: var(--font-heading); font-size: 2rem; margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+
+<div class="screen sv-screen" id="sv-landing-screen">
+  <div class="sv-topbar">
+    <a href="index.html" class="back-link">←</a>
+    <span class="sv-title">🎯 STEP VANNINI</span>
+  </div>
+
+  <div class="sv-intro">
+    Un percorso mirato su <b>Second e Third Conditional</b>, con esempi reali e concreti — proprio come piace alla prof. Prima ne parli con Zoe, poi ti metti alla prova con esercizi scritti più complessi.
+  </div>
+
+  <div class="sv-cards">
+    <button class="sv-card" id="sv-speak-card" style="--card-accent: var(--accent-blue)">
+      <span class="sv-card-icon">🗣️</span>
+      <span>
+        <span class="sv-card-title">Parla della teoria</span>
+        <span class="sv-card-desc">Zoe ripassa la regola e ti propone situazioni reali da rispondere a voce</span>
+      </span>
+    </button>
+
+    <button class="sv-card" id="sv-write-card" style="--card-accent: var(--accent-purple)">
+      <span class="sv-card-icon">✍️</span>
+      <span>
+        <span class="sv-card-title">Esercizi scritti complessi</span>
+        <span class="sv-card-desc">Verifica avanzata con scenari reali, più difficile del solito</span>
+      </span>
+    </button>
+  </div>
+</div>
+
+<div class="screen sv-screen" id="sv-prepare-screen" style="display:none;">
+  <div class="sv-prepare">
+    <p class="sv-prepare-title">🗣️ STEP VANNINI — Speaking</p>
+    <div class="phrase-panel">
+      <h3>📋 Frasi utili</h3>
+      <div id="sv-prepare-phrases"></div>
+    </div>
+    <button class="btn-primary" id="sv-prepare-start-btn">▶ Tap to start</button>
+    <p style="text-align:center;color:var(--text-dim);font-size:0.8rem;">Serve un tocco per attivare audio e microfono</p>
+    <button class="btn-secondary" id="sv-prepare-back-btn" style="align-self:center;">← Torna a STEP VANNINI</button>
+  </div>
+</div>
+
+<div class="offline-banner" id="offline-banner">📡 Connessione assente — riprova quando sei online</div>
+
+<div class="screen call-screen sv-call-screen" id="sv-call-screen">
+  <div class="call-timer-section">
+    <div class="call-timer" id="call-timer">8:00</div>
+    <div class="call-progress-track">
+      <div class="call-progress-fill" id="call-progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="call-avatar-section">
+    <div id="zoe-avatar-root" class="zoe-avatar-lg"></div>
+    <div class="call-status-row">
+      <div class="sound-wave" id="sound-wave"><span></span><span></span><span></span><span></span><span></span></div>
+      <button class="mic-indicator status-hidden" id="mic-indicator" type="button">🎤</button>
+      <div class="thinking-indicator status-hidden" id="thinking-indicator"><span>Zoe is thinking</span></div>
+    </div>
+    <div class="call-status-label" id="call-status-label">Connecting...</div>
+    <p class="call-caption status-hidden" id="call-caption"></p>
+  </div>
+
+  <button class="btn-danger" id="end-call-btn">🔴 End Call</button>
+</div>
+
+<button class="phrase-toggle-btn" id="phrase-toggle-btn" style="display:none;">📋 Frasi</button>
+<div class="phrase-drawer" id="phrase-drawer">
+  <h3 style="font-family:var(--font-heading);color:var(--accent-blue);margin-bottom:0.8rem;">📋 Frasi utili</h3>
+  <div id="drawer-phrases"></div>
+</div>
+
+<div class="screen sv-screen" id="sv-written-screen" style="display:none;">
+  <div class="sv-topbar">
+    <button class="back-link" id="sv-written-back-btn" type="button" style="background:none;border:none;">←</button>
+    <span class="sv-title">✍️ STEP VANNINI — Scritto</span>
+  </div>
+  <div id="sv-written-content"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="api-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/ai-content.js"></script>
+<script src="js/zoe-avatar.js"></script>
+<script src="js/session.js"></script>
+<script src="js/elevenlabs.js"></script>
+<script src="js/voice-input.js"></script>
+<script src="js/guided-conversation.js"></script>
+<script>
+  // ---------- Shared helpers ----------
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+  function normalize(str) {
+    return String(str || '').toLowerCase().trim().replace(/[.,!?;:]+$/g, '');
+  }
+  function stripLabel(str) {
+    return String(str || '').replace(/^\s*[A-Za-z0-9]{1,2}[.)]\s*/, '').trim();
+  }
+
+  const landingScreen = document.getElementById('sv-landing-screen');
+
+  // ---------- SPEAKING PART ----------
+  const SCENARIO = {
+    title: 'STEP VANNINI — Second & Third Conditional',
+    grammarFocus: 'Second Conditional e Third Conditional, con esempi reali applicati',
+    label: "Zoe helps the student practice Second and Third Conditional through real, concrete everyday situations (health choices, missed opportunities, exams, decisions, relationships, free time). First Zoe gives a very short, simple spoken reminder of how each one works: Second Conditional = if + past simple, would + base verb, for an imaginary present/future; Third Conditional = if + past perfect, would have + past participle, for an imaginary past, often with regret. Give one quick example of each while explaining. Then Zoe presents a series of short, realistic scenarios one at a time (e.g. 'You didn't study for yesterday's test and you failed it — what would have happened if you had studied?', 'Imagine you won a big prize tomorrow — what would you do?') and asks the student to answer using the correct conditional. Mix both conditionals across the conversation, gently correct mistakes, briefly explain WHY when correcting, and keep offering new real-life scenarios so the student gets lots of practice.",
+    phrases: [
+      { en: 'If I had studied more, I would have passed the test.', it: 'Se avessi studiato di più, avrei superato il test.' },
+      { en: 'If I ate healthier, I would feel better.', it: 'Se mangiassi in modo più sano, mi sentirei meglio.' },
+      { en: 'What would you do if you found a wallet on the street?', it: 'Cosa faresti se trovassi un portafoglio per strada?' },
+      { en: "If she had gone to bed earlier, she wouldn't have been so tired.", it: 'Se fosse andata a letto prima, non sarebbe stata così stanca.' },
+    ],
+  };
+
+  function renderPhrases(container, phrases) {
+    container.innerHTML = phrases.map((p) => `
+      <div class="phrase-item">
+        <div class="en">💬 ${p.en}</div>
+        <div class="it">${p.it}</div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('sv-speak-card').addEventListener('click', () => {
+    landingScreen.style.display = 'none';
+    document.getElementById('sv-prepare-screen').style.display = 'flex';
+    renderPhrases(document.getElementById('sv-prepare-phrases'), SCENARIO.phrases);
+    renderPhrases(document.getElementById('drawer-phrases'), SCENARIO.phrases);
+  });
+
+  document.getElementById('sv-prepare-back-btn').addEventListener('click', () => {
+    document.getElementById('sv-prepare-screen').style.display = 'none';
+    landingScreen.style.display = 'flex';
+  });
+
+  const avatarRoot = ZoeAvatar.mount('#zoe-avatar-root', { mode: 'realistic' });
+  avatarRoot.classList.add('zoe-avatar-lg');
+
+  const soundWave = document.getElementById('sound-wave');
+  const micIndicator = document.getElementById('mic-indicator');
+  const thinkingIndicator = document.getElementById('thinking-indicator');
+  const statusLabel = document.getElementById('call-status-label');
+  const captionEl = document.getElementById('call-caption');
+  const timerEl = document.getElementById('call-timer');
+  const progressFill = document.getElementById('call-progress-fill');
+
+  let sessionActive = false;
+
+  function showStatus(mode) {
+    soundWave.classList.toggle('status-hidden', mode !== 'speaking');
+    micIndicator.classList.toggle('status-hidden', mode !== 'listening');
+    thinkingIndicator.classList.toggle('status-hidden', mode !== 'thinking');
+    const labels = { speaking: 'Zoe is talking...', listening: 'Your turn — speak now! Tap 🎤 when you\'re done.', thinking: 'Zoe is thinking...' };
+    statusLabel.textContent = labels[mode] || '';
+  }
+
+  function zoeSpeak(text) {
+    return new Promise((resolve) => {
+      ZoeAvatar.setState('speaking');
+      showStatus('speaking');
+      captionEl.textContent = text;
+      captionEl.classList.remove('status-hidden');
+      ZoeTTS.onEnd(() => {
+        if (!sessionActive) return;
+        ZoeAvatar.setState('idle');
+        resolve();
+      });
+      ZoeTTS.zoeTTS(text).then((ref) => ZoeTTS.playAudio(ref));
+    });
+  }
+
+  function userListen() {
+    return new Promise((resolve) => {
+      captionEl.classList.add('status-hidden');
+      ZoeAvatar.setState('listening');
+      showStatus('listening');
+
+      VoiceInput.onSilence((text) => {
+        if (!sessionActive) return;
+        const trimmed = (text || '').trim();
+        if (!trimmed) { VoiceInput.startListening(); return; }
+        resolve(trimmed);
+      });
+
+      VoiceInput.onError((err) => {
+        if (!sessionActive) return;
+        if (err.type === 'permission-denied' || err.type === 'unsupported') {
+          statusLabel.textContent = err.message;
+          endCall('mic-error');
+        }
+      });
+
+      setTimeout(() => {
+        if (sessionActive) VoiceInput.startListening();
+      }, 400);
+    });
+  }
+
+  async function conversationLoop(initialLine) {
+    let zoeLine = initialLine;
+    while (sessionActive) {
+      await zoeSpeak(zoeLine);
+      if (!sessionActive) break;
+      ZoeAvatar.setState('thinking');
+      showStatus('thinking');
+      const userText = await userListen();
+      if (!sessionActive) break;
+      ZoeAvatar.setState('thinking');
+      showStatus('thinking');
+      zoeLine = await GuidedConversation.sendMessage(userText);
+    }
+  }
+
+  async function endCall(reason) {
+    if (!sessionActive) return;
+    sessionActive = false;
+    ZoeSession.stop();
+    ZoeTTS.stopAudio();
+    VoiceInput.stopListening();
+
+    ZoeAvatar.setState('thinking');
+    showStatus('thinking');
+    statusLabel.textContent = 'Preparing your feedback...';
+
+    try {
+      const feedback = await GuidedConversation.generateFeedback();
+      sessionStorage.setItem('speakeasy_pending_feedback', JSON.stringify({ scenario: SCENARIO.title, feedback, backUrl: 'step-vannini.html' }));
+    } catch (err) {
+      console.error('SpeakEasy: feedback generation failed', err);
+    }
+
+    window.location.href = 'feedback.html';
+  }
+
+  ZoeSession.onTick((remaining, total) => {
+    timerEl.textContent = ZoeSession.formatTime(remaining);
+    progressFill.style.width = `${(remaining / total) * 100}%`;
+  });
+  ZoeSession.onEnd((reason) => endCall(reason));
+  document.getElementById('end-call-btn').addEventListener('click', () => endCall('manual'));
+
+  micIndicator.addEventListener('click', () => {
+    if (VoiceInput.isListening()) VoiceInput.finishListening();
+  });
+
+  const offlineBanner = document.getElementById('offline-banner');
+  window.addEventListener('offline', () => offlineBanner.classList.add('visible'));
+  window.addEventListener('online', () => offlineBanner.classList.remove('visible'));
+  if (!navigator.onLine) offlineBanner.classList.add('visible');
+
+  function unlockAudio() {
+    try { const silent = new Audio(); silent.play().catch(() => {}); } catch {}
+    if ('speechSynthesis' in window) {
+      speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+    }
+  }
+
+  document.getElementById('sv-prepare-start-btn').addEventListener('click', () => {
+    unlockAudio();
+    document.getElementById('sv-prepare-screen').style.display = 'none';
+    document.getElementById('sv-call-screen').classList.add('active');
+    document.getElementById('phrase-toggle-btn').style.display = 'block';
+    sessionActive = true;
+    ZoeSession.start();
+    GuidedConversation.startScenario(SCENARIO.label, SCENARIO.grammarFocus).then((line) => conversationLoop(line));
+  });
+
+  const phraseDrawer = document.getElementById('phrase-drawer');
+  document.getElementById('phrase-toggle-btn').addEventListener('click', () => {
+    phraseDrawer.classList.toggle('open');
+  });
+
+  // ---------- WRITTEN PART ----------
+  const STEP_VANNINI_WRITTEN_PROMPT = `Stai creando una verifica scritta AVANZATA di inglese in stile Cambridge per una studentessa italiana di 15 anni, livello B1+, sull'argomento Second Conditional e Third Conditional. Deve essere più difficile e più realistica di una verifica normale: frasi più lunghe, scenari di vita reale articolati (salute, scelte, rimpianti, decisioni, relazioni, scuola), qualche Mixed Conditional (if + past perfect, would + verbo base) mescolato tra i due tipi principali per alzare la difficoltà, distrattori grammaticalmente plausibili e non ovvi.
+
+Rispondi SOLO con un oggetto JSON valido (niente markdown, niente code fence) con questa forma:
+{"sections":[
+  {"type":"multiple_choice","instructions":"...","items":[{"number":1,"question":"...","options":{"A":"...","B":"...","C":"..."},"correctAnswer":"B"}]},
+  {"type":"word_bank_fill","instructions":"...","wordBank":["...","..."],"items":[{"number":1,"text":"...___...","correctAnswer":"..."}]},
+  {"type":"matching_complete","instructions":"...","listA":["...","..."],"listB":["...","..."],"items":[{"number":1,"text":"...___","correctAnswer":"..."}]},
+  {"type":"transformation","instructions":"...","items":[{"number":1,"original":"...","keyword":"...","starter":"...","correctAnswer":"..."}]}
+]}
+
+Regole IMPORTANTI:
+- Genera esattamente 6 items per sezione (più lungo di una verifica normale), nell'ordine: multiple_choice, word_bank_fill, matching_complete, transformation
+- wordBank e listA devono avere 1-2 elementi extra rispetto agli items (distrattori)
+- listB: NIENTE lettere o numeri davanti al testo (niente "A. ..." o "1. ..."), solo il testo puro — le lettere le aggiunge l'interfaccia
+- "correctAnswer" in matching_complete deve combaciare ESATTAMENTE (carattere per carattere) il testo di un elemento di listB
+- "correctAnswer" in multiple_choice è una lettera tra quelle usate in "options" (es. "B")
+- "starter" in transformation è l'inizio della frase che lo studente deve completare, "correctAnswer" è la frase COMPLETA corretta (starter incluso)
+- Includi in ogni sezione almeno 1-2 item con scenari articolati su più righe o Mixed Conditional per aumentare la difficoltà
+- "instructions" per ogni sezione: breve consegna in italiano`;
+
+  const SECTION_META = {
+    multiple_choice: { icon: '🔘', title: 'Scelta multipla' },
+    word_bank_fill: { icon: '🧰', title: 'Completa con le parole della lista' },
+    matching_complete: { icon: '🔗', title: 'Collega e completa' },
+    transformation: { icon: '🔄', title: 'Trasforma la frase' },
+  };
+
+  let writtenData = null;
+  const writtenContentEl = document.getElementById('sv-written-content');
+
+  document.getElementById('sv-write-card').addEventListener('click', () => {
+    landingScreen.style.display = 'none';
+    document.getElementById('sv-written-screen').style.display = 'flex';
+    loadWrittenTest();
+  });
+
+  document.getElementById('sv-written-back-btn').addEventListener('click', () => {
+    document.getElementById('sv-written-screen').style.display = 'none';
+    writtenContentEl.innerHTML = '';
+    landingScreen.style.display = 'flex';
+  });
+
+  async function loadWrittenTest() {
+    writtenContentEl.innerHTML = `
+      <div class="sv-state">
+        <span>✍️ Zoe sta preparando una verifica avanzata...</span>
+        <div class="sv-loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    `;
+    try {
+      const data = await AIContent.askJSON('Genera la verifica avanzata su Second e Third Conditional.', STEP_VANNINI_WRITTEN_PROMPT, 6000);
+      if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+        throw new Error('Verifica non generata correttamente — riprova.');
+      }
+      writtenData = data;
+      renderWrittenTest();
+    } catch (err) {
+      writtenContentEl.innerHTML = `
+        <div class="sv-error">
+          😕 ${escapeHtml(err.message)}
+          <div class="sv-actions"><button class="btn-secondary" id="sv-retry-btn" style="margin-top:0.8rem">Riprova</button></div>
+        </div>
+      `;
+      document.getElementById('sv-retry-btn').addEventListener('click', loadWrittenTest);
+    }
+  }
+
+  function renderWrittenTest() {
+    let html = '<div class="sv-quiz">';
+    html += `<div class="sv-test-header"><span class="sv-card-title">🎯 STEP VANNINI — Verifica avanzata</span><span class="unit-subtitle" style="font-size:0.76rem;color:var(--text-dim);">Second e Third Conditional, con scenari reali</span></div>`;
+
+    writtenData.sections.forEach((section, sIndex) => {
+      const meta = SECTION_META[section.type] || { icon: '📖', title: section.type };
+      html += `<div class="sv-section" data-section="${sIndex}">`;
+      html += `<div class="sv-section-title">${meta.icon} ${meta.title}</div>`;
+      if (section.instructions) html += `<div class="sv-instructions">${escapeHtml(section.instructions)}</div>`;
+
+      if (section.type === 'word_bank_fill' && Array.isArray(section.wordBank)) {
+        html += `<div class="word-bank">${section.wordBank.map((w) => `<span class="word-chip">${escapeHtml(w)}</span>`).join('')}</div>`;
+      }
+      if (section.type === 'matching_complete' && Array.isArray(section.listA)) {
+        html += `<div class="match-list">${section.listA.map((a, i) => `<div>${String.fromCharCode(65 + i)}. ${escapeHtml(a)}</div>`).join('')}</div>`;
+      }
+
+      (section.items || []).forEach((item) => {
+        html += `<div class="sv-item" data-section="${sIndex}" data-number="${item.number}">`;
+        html += `<div class="sv-item-num">${item.number}.</div>`;
+
+        if (section.type === 'multiple_choice') {
+          html += `<div class="sv-item-body"><div class="sv-item-q">${escapeHtml(item.question)}</div>`;
+          html += Object.entries(item.options || {}).map(([key, val]) => `
+            <label class="sv-radio">
+              <input type="radio" name="mc-${sIndex}-${item.number}" value="${escapeHtml(key)}">
+              <span><b>${escapeHtml(key)}.</b> ${escapeHtml(val)}</span>
+            </label>
+          `).join('') + '</div>';
+        } else if (section.type === 'word_bank_fill') {
+          const parts = String(item.text || '').split('___');
+          html += `<div class="sv-item-body">${escapeHtml(parts[0] || '')}<input type="text" class="sv-inline-input" data-kind="fill">${escapeHtml(parts.slice(1).join('___') || '')}</div>`;
+        } else if (section.type === 'matching_complete') {
+          const opts = (section.listB || []).map(stripLabel);
+          const parts = String(item.text || '').split('___');
+          html += `<div class="sv-item-body">${escapeHtml(parts[0] || '')}
+            <select class="sv-inline-select" data-kind="match">
+              <option value="">—</option>
+              ${opts.map((o, i) => `<option value="${escapeHtml(o)}">${String.fromCharCode(65 + i)}. ${escapeHtml(o)}</option>`).join('')}
+            </select>
+            ${escapeHtml(parts.slice(1).join('___') || '')}</div>`;
+        } else if (section.type === 'transformation') {
+          html += `<div class="sv-item-body">
+            <div class="sv-trans-original">${escapeHtml(item.original || '')} <span class="sv-trans-keyword">(${escapeHtml(item.keyword || '')})</span></div>
+            <input type="text" class="sv-inline-input sv-trans-input" data-kind="trans" value="${escapeHtml(item.starter || '')}">
+          </div>`;
+        }
+        html += `</div>`;
+      });
+
+      html += `<div class="sv-section-score" id="sv-score-${sIndex}"></div>`;
+      html += `</div>`;
+    });
+
+    html += `<div class="sv-actions" style="margin-top:0.5rem;"><button class="btn-primary" id="sv-check-btn">Correggi tutto</button></div>`;
+    html += `<div class="sv-final-wrap" id="sv-final-wrap"></div>`;
+    html += '</div>';
+
+    writtenContentEl.innerHTML = html;
+    document.getElementById('sv-check-btn').addEventListener('click', checkWrittenTest);
+  }
+
+  function checkWrittenTest() {
+    let totalCorrect = 0;
+    let totalItems = 0;
+
+    writtenData.sections.forEach((section, sIndex) => {
+      let sectionCorrect = 0;
+      (section.items || []).forEach((item) => {
+        totalItems++;
+        const itemEl = writtenContentEl.querySelector(`.sv-item[data-section="${sIndex}"][data-number="${item.number}"]`);
+        let given = '';
+        let isCorrect = false;
+
+        if (section.type === 'multiple_choice') {
+          const checked = itemEl.querySelector('input[type="radio"]:checked');
+          given = checked ? checked.value : '';
+          isCorrect = !!given && normalize(given) === normalize(item.correctAnswer);
+          itemEl.querySelectorAll('.sv-radio').forEach((label) => {
+            const input = label.querySelector('input');
+            if (normalize(input.value) === normalize(item.correctAnswer)) label.classList.add('correct');
+            else if (input.value === given) label.classList.add('wrong');
+            input.disabled = true;
+          });
+        } else if (section.type === 'word_bank_fill') {
+          const input = itemEl.querySelector('.sv-inline-input');
+          given = input ? input.value : '';
+          isCorrect = normalize(given) === normalize(item.correctAnswer);
+          if (input) { input.classList.add(isCorrect ? 'correct' : 'wrong'); input.disabled = true; }
+        } else if (section.type === 'matching_complete') {
+          const select = itemEl.querySelector('.sv-inline-select');
+          given = select ? select.value : '';
+          isCorrect = normalize(stripLabel(given)) === normalize(stripLabel(item.correctAnswer));
+          if (select) { select.classList.add(isCorrect ? 'correct' : 'wrong'); select.disabled = true; }
+        } else if (section.type === 'transformation') {
+          const input = itemEl.querySelector('.sv-trans-input');
+          given = input ? input.value : '';
+          isCorrect = normalize(given) === normalize(item.correctAnswer);
+          if (input) { input.classList.add(isCorrect ? 'correct' : 'wrong'); input.disabled = true; }
+        }
+
+        if (isCorrect) { sectionCorrect++; totalCorrect++; }
+
+        if (!isCorrect) {
+          const bodyEl = itemEl.querySelector('.sv-item-body');
+          if (bodyEl) bodyEl.insertAdjacentHTML('beforeend', `<div class="sv-item-hint">✅ ${escapeHtml(item.correctAnswer)}</div>`);
+        }
+      });
+
+      const scoreEl = document.getElementById(`sv-score-${sIndex}`);
+      if (scoreEl) scoreEl.textContent = `${sectionCorrect}/${(section.items || []).length}`;
+    });
+
+    document.getElementById('sv-check-btn').disabled = true;
+
+    const finalEl = document.getElementById('sv-final-wrap');
+    const pct = Math.round((totalCorrect / totalItems) * 100);
+    const msg = pct >= 80 ? 'Top! Sei pronta anche per la verifica della prof! 🎉'
+      : pct >= 50 ? 'Buon lavoro, ma ripassa ancora un po\' 💪'
+      : 'Vale la pena rivedere bene la regola prima della verifica 📖';
+
+    finalEl.innerHTML = `
+      <div class="sv-final">
+        <div class="sv-final-score">${totalCorrect}/${totalItems}</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;">${msg}</p>
+        <div class="sv-actions" style="margin-top:1.2rem;">
+          <button class="btn-primary" id="sv-retry-test-btn">Rifai una verifica nuova</button>
+        </div>
+        <div class="sv-actions" style="margin-top:0.6rem;">
+          <button class="btn-secondary" id="sv-back-landing-btn">Torna a STEP VANNINI</button>
+        </div>
+      </div>
+    `;
+
+    SpeakEasyStorage.saveEserciziRisultato({ topic: 'STEP VANNINI — Verifica avanzata (Second/Third Conditional)', score: totalCorrect, total: totalItems });
+
+    document.getElementById('sv-retry-test-btn').addEventListener('click', loadWrittenTest);
+    document.getElementById('sv-back-landing-btn').addEventListener('click', () => {
+      document.getElementById('sv-written-screen').style.display = 'none';
+      writtenContentEl.innerHTML = '';
+      landingScreen.style.display = 'flex';
+    });
+
+    finalEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+</script>
+
+</body>
+</html>

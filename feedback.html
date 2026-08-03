@@ -203,7 +203,7 @@
   function makeHeader(payload) {
     const div = document.createElement('div');
     div.className = 'fb-header';
-    const title = payload.source === 'guidata'
+    const title = payload.scenario
       ? `Great roleplay! Here's your feedback 📋 <span style="font-weight:400;font-size:0.8em;color:var(--text-dim)">(${payload.scenario})</span>`
       : "Great chat! Here's your feedback 📋";
     div.innerHTML = `
@@ -267,19 +267,19 @@
   function makeActions(payload) {
     const div = document.createElement('div');
     div.className = 'fb-actions';
-    const isGuidata = payload.source === 'guidata';
+    const isScenario = !!payload.scenario;
     div.innerHTML = `
-      <button class="btn-primary" id="call-again-btn">${isGuidata ? '🗣️ Try another scenario' : '📞 Call again'}</button>
+      <button class="btn-primary" id="call-again-btn">${isScenario ? '🗣️ Try another scenario' : '📞 Call again'}</button>
       <button class="btn-secondary" id="save-progress-btn">💾 Save progress</button>
       <p class="fb-saved-note" id="fb-saved-note"></p>
     `;
 
     div.querySelector('#call-again-btn').addEventListener('click', () => {
-      window.location.href = isGuidata ? 'guidata.html' : 'index.html';
+      window.location.href = payload.backUrl || (isScenario ? 'guidata.html' : 'index.html');
     });
 
     div.querySelector('#save-progress-btn').addEventListener('click', () => {
-      if (isGuidata) {
+      if (isScenario) {
         SpeakEasyStorage.saveGuidataSessione({ scenario: payload.scenario, ...payload.feedback });
       } else {
         SpeakEasyStorage.saveSession(payload.feedback);

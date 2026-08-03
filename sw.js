@@ -1,4 +1,4 @@
-const CACHE_NAME = 'speakeasy-v14';
+const CACHE_NAME = 'speakeasy-v16';
 const APP_SHELL = [
   './index.html',
   './call.html',
@@ -6,6 +6,7 @@ const APP_SHELL = [
   './grammatica.html',
   './esercizi.html',
   './guidata.html',
+  './step-vannini.html',
   './css/main.css',
   './css/avatar.css',
   './css/call.css',

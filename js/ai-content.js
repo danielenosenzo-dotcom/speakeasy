@@ -48,6 +48,10 @@ const AIContent = (() => {
     try {
       return JSON.parse(cleaned);
     } catch {
+      const match = cleaned.match(/[{[][\s\S]*[}\]]/);
+      if (match) {
+        try { return JSON.parse(match[0]); } catch {}
+      }
       throw new Error('Risposta di Claude non valida — riprova.');
     }
   }
