@@ -343,6 +343,124 @@
   }
 
   .ex-actions { display: flex; justify-content: center; gap: 0.6rem; padding-top: 0.4rem; }
+
+  .real-test-header {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-bottom: -0.2rem;
+  }
+
+  .real-section {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .real-section-title {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+  }
+
+  .real-instructions {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-top: -0.4rem;
+  }
+
+  .word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .word-chip {
+    background: var(--surface-2);
+    color: var(--accent-blue);
+    border-radius: var(--radius-full);
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .match-list {
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 0.9rem;
+    font-size: 0.82rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .real-item {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--surface-2);
+  }
+  .real-item:first-of-type { border-top: none; padding-top: 0; }
+
+  .real-item-num {
+    font-family: var(--font-heading);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .real-item-body {
+    flex: 1;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .real-item-q { margin-bottom: 0.5rem; }
+
+  .real-radio {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface-2);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 0.55rem 0.8rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.88rem;
+  }
+  .real-radio.correct { border-color: var(--accent-green); background: rgba(74,222,128,0.12); }
+  .real-radio.wrong { border-color: #f87171; background: rgba(248,113,113,0.12); }
+
+  .real-inline-input, .real-inline-select {
+    background: var(--surface-2);
+    border: 2px solid var(--surface-2);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 0.3rem 0.5rem;
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+  }
+  .real-inline-input { width: 130px; text-align: center; }
+  .real-inline-input.correct, .real-inline-select.correct { border-color: var(--accent-green); }
+  .real-inline-input.wrong, .real-inline-select.wrong { border-color: #f87171; }
+
+  .real-trans-original { color: var(--text-dim); margin-bottom: 0.4rem; }
+  .real-trans-keyword { color: var(--accent-purple); font-weight: 700; }
+  .real-trans-input { width: 100%; box-sizing: border-box; text-align: left; }
+
+  .real-item-hint {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--accent-green);
+  }
+
+  .real-section-score {
+    align-self: flex-end;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
 </style>
 </head>
 <body>
@@ -355,7 +473,8 @@
 
   <div class="ex-tabs" id="ex-tabs">
     <button class="ex-tab active" id="ex-tab-topic" type="button">Per argomento</button>
-    <button class="ex-tab" id="ex-tab-verifica" type="button">📝 Modalità Verifica</button>
+    <button class="ex-tab" id="ex-tab-verifica" type="button">📝 Verifica</button>
+    <button class="ex-tab" id="ex-tab-real" type="button">📋 Reale</button>
   </div>
 
   <div class="ex-units" id="ex-units"></div>
@@ -409,6 +528,33 @@ Rispondi SOLO con un oggetto JSON valido (niente markdown): {"text": "... testo 
 
 Il campo "text" deve contenere il numero tra parentesi quadre E il verbo base tra parentesi tonde inline nel testo, così lo studente sa quale verbo coniugare. "correctAnswer" minuscolo, senza punteggiatura. "rule" è il nome preciso della regola coinvolta per quello spazio.`;
 
+  const REAL_TEST_SYSTEM_PROMPT = `Stai creando una verifica di inglese in stile Cambridge per una studentessa italiana di 15 anni, livello B1+, sull'argomento richiesto. Deve rispecchiare fedelmente il formato reale delle verifiche scolastiche: più sezioni con tipi di esercizio diversi.
+
+Rispondi SOLO con un oggetto JSON valido (niente markdown, niente code fence) con questa forma:
+{"sections":[
+  {"type":"multiple_choice","instructions":"...","items":[{"number":1,"question":"...","options":{"A":"...","B":"...","C":"..."},"correctAnswer":"B"}]},
+  {"type":"word_bank_fill","instructions":"...","wordBank":["...","..."],"items":[{"number":1,"text":"...___...","correctAnswer":"..."}]},
+  {"type":"matching_complete","instructions":"...","listA":["...","..."],"listB":["...","..."],"items":[{"number":1,"text":"...___","correctAnswer":"..."}]},
+  {"type":"transformation","instructions":"...","items":[{"number":1,"original":"...","keyword":"...","starter":"...","correctAnswer":"..."}]}
+]}
+
+Regole IMPORTANTI:
+- Genera esattamente 5 items per sezione, nell'ordine: multiple_choice, word_bank_fill, matching_complete, transformation
+- wordBank e listA devono avere 1-2 elementi extra rispetto agli items (distrattori)
+- listB: NIENTE lettere o numeri davanti al testo (niente "A. ..." o "1. ..."), solo il testo puro — le lettere le aggiunge l'interfaccia
+- "correctAnswer" in matching_complete deve combaciare ESATTAMENTE (carattere per carattere) il testo di un elemento di listB
+- "correctAnswer" in multiple_choice è una lettera tra quelle usate in "options" (es. "B")
+- "starter" in transformation è l'inizio della frase che lo studente deve completare, "correctAnswer" è la frase COMPLETA corretta (starter incluso)
+- Contenuto naturale, vario, difficoltà da vera verifica scolastica sull'argomento richiesto
+- "instructions" per ogni sezione: breve consegna in italiano che spiega cosa fare in quella sezione`;
+
+  const SECTION_META = {
+    multiple_choice: { icon: '🔘', title: 'Scelta multipla' },
+    word_bank_fill: { icon: '🧰', title: 'Completa con le parole della lista' },
+    matching_complete: { icon: '🔗', title: 'Collega e completa' },
+    transformation: { icon: '🔄', title: 'Trasforma la frase' },
+  };
+
   const UNITS = [
     { id: 'u1', title: 'Unit 1', subtitle: 'Appearance, personality and relationships', emoji: '🧑', topics: [
       { label: 'Present Simple vs Continuous', desc: 'Verbi stativi e dinamici', prompt: 'Present Simple vs Present Continuous, inclusa la differenza tra verbi stativi (stative) e dinamici' },
@@ -435,6 +581,10 @@ Il campo "text" deve contenere il numero tra parentesi quadre E il verbo base tr
     { id: 'u5', title: 'Unit 5', subtitle: 'Planet Earth', emoji: '🌍', topics: [
       { label: 'Relative clauses', desc: 'who, which, that, where, whose', prompt: 'Defining and non-defining relative clauses: who/which/that/where/when/whose' },
       { label: 'Articolo "the"', desc: 'Usi dell\'articolo determinativo', prompt: 'Usi dell\'articolo determinativo "the" in inglese' },
+    ]},
+    { id: 'u6', title: 'Unit 6', subtitle: 'Good health', emoji: '🏥', topics: [
+      { label: 'Second e Third Conditional', desc: 'Ipotesi presenti e passate', prompt: 'Second Conditional e Third Conditional (Unit 6 Into Focus B1+, Good health)' },
+      { label: 'Wish / If only', desc: 'Desideri e rimpianti', prompt: 'Wish e If only per esprimere desideri sul presente e rimpianti sul passato (Unit 6 Into Focus B1+, Good health)' },
     ]},
     { id: 'altro', title: 'Altri argomenti', subtitle: "Studiati durante l'anno", emoji: '📚', topics: [
       { label: 'Modali di obbligo', desc: "must, have to, should...", prompt: "Modali ed espressioni di obbligo, necessità, proibizione: must, have to, mustn't, can't, be allowed to, don't have to, needn't, should" },
@@ -473,7 +623,10 @@ Il campo "text" deve contenere il numero tra parentesi quadre E il verbo base tr
       `).join('')}
     `;
     topicsEl.querySelectorAll('.topic-card').forEach((btn) => {
-      btn.addEventListener('click', () => loadExercises(btn.dataset.prompt));
+      btn.addEventListener('click', () => {
+        if (topicPickerMode === 'realtest') loadRealTest(btn.dataset.prompt);
+        else loadExercises(btn.dataset.prompt);
+      });
     });
     document.getElementById('back-to-units-btn').addEventListener('click', renderUnits);
     unitsEl.style.display = 'none';
@@ -484,6 +637,7 @@ Il campo "text" deve contenere il numero tra parentesi quadre E il verbo base tr
   let score = 0;
   let currentTopic = '';
   let currentMode = 'topic';
+  let topicPickerMode = 'practice';
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -493,6 +647,10 @@ Il campo "text" deve contenere il numero tra parentesi quadre E il verbo base tr
 
   function normalize(str) {
     return String(str || '').toLowerCase().trim().replace(/[.,!?;:]+$/g, '');
+  }
+
+  function stripLabel(str) {
+    return String(str || '').replace(/^\s*[A-Za-z0-9]{1,2}[.)]\s*/, '').trim();
   }
 
   async function loadExercises(topic) {
@@ -789,27 +947,212 @@ Il campo "text" deve contenere il numero tra parentesi quadre E il verbo base tr
     document.getElementById('verifica-cloze-btn').addEventListener('click', loadCloze);
   }
 
+  let realTestData = null;
+
+  async function loadRealTest(topic) {
+    currentTopic = topic;
+    currentMode = 'realtest';
+    unitsEl.style.display = 'none';
+    topicsEl.style.display = 'none';
+    document.getElementById('ex-verifica-menu').style.display = 'none';
+    contentEl.innerHTML = `
+      <div class="ex-state">
+        <span>📋 Zoe sta preparando una verifica in stile scolastico...</span>
+        <div class="ex-loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    `;
+
+    try {
+      const data = await AIContent.askJSON(`Argomento: ${topic}`, REAL_TEST_SYSTEM_PROMPT, 5000);
+      if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+        throw new Error('Verifica non generata correttamente — riprova.');
+      }
+      realTestData = data;
+      renderRealTest();
+    } catch (err) {
+      contentEl.innerHTML = `
+        <div class="ex-error ex-fade-in">
+          😕 ${escapeHtml(err.message)}
+          <div class="ex-actions"><button class="btn-secondary" id="retry-btn" style="margin-top:0.8rem">Riprova</button></div>
+        </div>
+      `;
+      document.getElementById('retry-btn').addEventListener('click', () => loadRealTest(topic));
+    }
+  }
+
+  function renderRealTest() {
+    let html = '<div class="ex-quiz ex-fade-in">';
+    html += `<div class="real-test-header"><span class="topic-title">📋 Verifica reale</span><span class="unit-subtitle">${escapeHtml(currentTopic)}</span></div>`;
+
+    realTestData.sections.forEach((section, sIndex) => {
+      const meta = SECTION_META[section.type] || { icon: '📖', title: section.type };
+      html += `<div class="real-section" data-section="${sIndex}">`;
+      html += `<div class="real-section-title">${meta.icon} ${meta.title}</div>`;
+      if (section.instructions) html += `<div class="real-instructions">${escapeHtml(section.instructions)}</div>`;
+
+      if (section.type === 'word_bank_fill' && Array.isArray(section.wordBank)) {
+        html += `<div class="word-bank">${section.wordBank.map((w) => `<span class="word-chip">${escapeHtml(w)}</span>`).join('')}</div>`;
+      }
+      if (section.type === 'matching_complete' && Array.isArray(section.listA)) {
+        html += `<div class="match-list">${section.listA.map((a, i) => `<div>${String.fromCharCode(65 + i)}. ${escapeHtml(a)}</div>`).join('')}</div>`;
+      }
+
+      (section.items || []).forEach((item) => {
+        html += `<div class="real-item" data-section="${sIndex}" data-number="${item.number}">`;
+        html += `<div class="real-item-num">${item.number}.</div>`;
+
+        if (section.type === 'multiple_choice') {
+          html += `<div class="real-item-body"><div class="real-item-q">${escapeHtml(item.question)}</div>`;
+          html += Object.entries(item.options || {}).map(([key, val]) => `
+            <label class="real-radio">
+              <input type="radio" name="mc-${sIndex}-${item.number}" value="${escapeHtml(key)}">
+              <span><b>${escapeHtml(key)}.</b> ${escapeHtml(val)}</span>
+            </label>
+          `).join('') + '</div>';
+        } else if (section.type === 'word_bank_fill') {
+          const parts = String(item.text || '').split('___');
+          html += `<div class="real-item-body">${escapeHtml(parts[0] || '')}<input type="text" class="real-inline-input" data-kind="fill">${escapeHtml(parts.slice(1).join('___') || '')}</div>`;
+        } else if (section.type === 'matching_complete') {
+          const opts = (section.listB || []).map(stripLabel);
+          const parts = String(item.text || '').split('___');
+          html += `<div class="real-item-body">${escapeHtml(parts[0] || '')}
+            <select class="real-inline-select" data-kind="match">
+              <option value="">—</option>
+              ${opts.map((o, i) => `<option value="${escapeHtml(o)}">${String.fromCharCode(65 + i)}. ${escapeHtml(o)}</option>`).join('')}
+            </select>
+            ${escapeHtml(parts.slice(1).join('___') || '')}</div>`;
+        } else if (section.type === 'transformation') {
+          html += `<div class="real-item-body">
+            <div class="real-trans-original">${escapeHtml(item.original || '')} <span class="real-trans-keyword">(${escapeHtml(item.keyword || '')})</span></div>
+            <input type="text" class="real-inline-input real-trans-input" data-kind="trans" value="${escapeHtml(item.starter || '')}">
+          </div>`;
+        }
+        html += `</div>`;
+      });
+
+      html += `<div class="real-section-score" id="real-score-${sIndex}"></div>`;
+      html += `</div>`;
+    });
+
+    html += `<div class="ex-actions" style="margin-top:0.5rem;"><button class="btn-primary" id="real-check-btn">Correggi tutto</button></div>`;
+    html += `<div class="real-final" id="real-final"></div>`;
+    html += '</div>';
+
+    contentEl.innerHTML = html;
+    document.getElementById('real-check-btn').addEventListener('click', checkRealTest);
+  }
+
+  function checkRealTest() {
+    let totalCorrect = 0;
+    let totalItems = 0;
+
+    realTestData.sections.forEach((section, sIndex) => {
+      let sectionCorrect = 0;
+      (section.items || []).forEach((item) => {
+        totalItems++;
+        const itemEl = contentEl.querySelector(`.real-item[data-section="${sIndex}"][data-number="${item.number}"]`);
+        let given = '';
+        let isCorrect = false;
+
+        if (section.type === 'multiple_choice') {
+          const checked = itemEl.querySelector('input[type="radio"]:checked');
+          given = checked ? checked.value : '';
+          isCorrect = !!given && normalize(given) === normalize(item.correctAnswer);
+          itemEl.querySelectorAll('.real-radio').forEach((label) => {
+            const input = label.querySelector('input');
+            if (normalize(input.value) === normalize(item.correctAnswer)) label.classList.add('correct');
+            else if (input.value === given) label.classList.add('wrong');
+            input.disabled = true;
+          });
+        } else if (section.type === 'word_bank_fill') {
+          const input = itemEl.querySelector('.real-inline-input');
+          given = input ? input.value : '';
+          isCorrect = normalize(given) === normalize(item.correctAnswer);
+          if (input) { input.classList.add(isCorrect ? 'correct' : 'wrong'); input.disabled = true; }
+        } else if (section.type === 'matching_complete') {
+          const select = itemEl.querySelector('.real-inline-select');
+          given = select ? select.value : '';
+          isCorrect = normalize(stripLabel(given)) === normalize(stripLabel(item.correctAnswer));
+          if (select) { select.classList.add(isCorrect ? 'correct' : 'wrong'); select.disabled = true; }
+        } else if (section.type === 'transformation') {
+          const input = itemEl.querySelector('.real-trans-input');
+          given = input ? input.value : '';
+          isCorrect = normalize(given) === normalize(item.correctAnswer);
+          if (input) { input.classList.add(isCorrect ? 'correct' : 'wrong'); input.disabled = true; }
+        }
+
+        if (isCorrect) { sectionCorrect++; totalCorrect++; }
+
+        if (!isCorrect) {
+          const bodyEl = itemEl.querySelector('.real-item-body');
+          if (bodyEl) bodyEl.insertAdjacentHTML('beforeend', `<div class="real-item-hint">✅ ${escapeHtml(item.correctAnswer)}</div>`);
+        }
+      });
+
+      const scoreEl = document.getElementById(`real-score-${sIndex}`);
+      if (scoreEl) scoreEl.textContent = `${sectionCorrect}/${(section.items || []).length}`;
+    });
+
+    document.getElementById('real-check-btn').disabled = true;
+
+    const finalEl = document.getElementById('real-final');
+    const pct = Math.round((totalCorrect / totalItems) * 100);
+    const msg = pct >= 80 ? 'Fantastico! Sei pronta per la verifica vera! 🎉'
+      : pct >= 50 ? 'Buon lavoro, ma ripassa ancora un po\' 💪'
+      : 'Vale la pena rivedere le regole prima della verifica 📖';
+
+    finalEl.innerHTML = `
+      <div class="ex-final">
+        <div class="ex-final-score">${totalCorrect}/${totalItems}</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;">${msg}</p>
+        <div class="ex-actions" style="margin-top:1.2rem;">
+          <button class="btn-primary" id="real-retry-btn">Rifai una verifica nuova</button>
+        </div>
+        <div class="ex-actions" style="margin-top:0.6rem;">
+          <button class="btn-secondary" id="real-back-btn">Un altro argomento</button>
+        </div>
+      </div>
+    `;
+
+    SpeakEasyStorage.saveEserciziRisultato({ topic: `Verifica reale — ${currentTopic}`, score: totalCorrect, total: totalItems });
+
+    document.getElementById('real-retry-btn').addEventListener('click', () => loadRealTest(currentTopic));
+    document.getElementById('real-back-btn').addEventListener('click', () => switchTab('real'));
+
+    finalEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function switchTab(tab) {
     const tabTopic = document.getElementById('ex-tab-topic');
     const tabVerifica = document.getElementById('ex-tab-verifica');
+    const tabReal = document.getElementById('ex-tab-real');
     const verificaMenu = document.getElementById('ex-verifica-menu');
+    tabTopic.classList.remove('active');
+    tabVerifica.classList.remove('active');
+    tabReal.classList.remove('active');
+    unitsEl.style.display = 'none';
+    topicsEl.style.display = 'none';
+    verificaMenu.style.display = 'none';
+    contentEl.innerHTML = '';
     if (tab === 'verifica') {
       tabVerifica.classList.add('active');
-      tabTopic.classList.remove('active');
       verificaMenu.style.display = 'flex';
-      unitsEl.style.display = 'none';
-      topicsEl.style.display = 'none';
+    } else if (tab === 'real') {
+      tabReal.classList.add('active');
+      topicPickerMode = 'realtest';
+      unitsEl.style.display = 'flex';
+      renderUnits();
     } else {
       tabTopic.classList.add('active');
-      tabVerifica.classList.remove('active');
+      topicPickerMode = 'practice';
       unitsEl.style.display = 'flex';
-      topicsEl.style.display = 'none';
-      verificaMenu.style.display = 'none';
+      renderUnits();
     }
   }
 
   document.getElementById('ex-tab-topic').addEventListener('click', () => switchTab('topic'));
   document.getElementById('ex-tab-verifica').addEventListener('click', () => switchTab('verifica'));
+  document.getElementById('ex-tab-real').addEventListener('click', () => switchTab('real'));
 
   renderUnits();
   renderVerificaMenu();
